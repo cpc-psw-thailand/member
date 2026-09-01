@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ตรวจสอบสถานะสมาชิก — CPC–PSW Thailand</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.png" alt="ตราสัญลักษณ์ CPC-PSW Thailand">
+      <span>
+        <span class="brand-th">CPC–PSW Thailand</span><br>
+        <span class="brand-en">Social Workers &amp; Psychologists under the Criminal Procedure Code</span>
+      </span>
+    </a>
+    <button class="nav-toggle" aria-label="เปิดเมนู">เมนู</button>
+    <nav class="site-nav">
+      <a href="index.html">หน้าแรก</a>
+      <a href="register.html">สมัครสมาชิก</a>
+      <a href="status.html" aria-current="page">ตรวจสอบสถานะ</a>
+      <a href="admin.html">สำหรับเจ้าหน้าที่</a>
+    </nav>
+  </div>
+</header>
+
+<section class="section" style="padding-top:40px">
+  <div class="wrap" style="max-width:680px">
+    <h1>ตรวจสอบสถานะสมาชิก</h1>
+    <p class="muted">กรอกเลขบัตรประชาชนและเบอร์โทรศัพท์ที่ใช้ตอนสมัคร เพื่อตรวจสอบสถานะการสมัครหรือสมาชิกภาพ</p>
+    <hr class="rule">
+
+    <div id="alertBox" class="alert hidden" role="alert"></div>
+
+    <div class="panel">
+      <form id="statusForm" novalidate>
+        <div class="field">
+          <label for="nationalID">เลขบัตรประชาชน<span class="req">*</span></label>
+          <input type="text" id="nationalID" inputmode="numeric" maxlength="13" pattern="[0-9]{13}" required>
+        </div>
+        <div class="field">
+          <label for="phone">เบอร์โทรศัพท์<span class="req">*</span></label>
+          <input type="tel" id="phone" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="checkBtn">ตรวจสอบสถานะ</button>
+      </form>
+    </div>
+
+    <div id="resultWrap" class="hidden" style="margin-top:24px">
+      <div class="result-card">
+        <div class="rc-head">
+          <div>
+            <div style="font-size:.8rem;color:var(--gold-soft)">รหัสสมาชิก</div>
+            <div style="font-family:var(--font-display);font-size:1.2rem" id="rcMemberID">—</div>
+          </div>
+          <span class="badge" id="rcStatus">—</span>
+        </div>
+        <div class="rc-body">
+          <div class="rc-item"><div class="rc-label">ชื่อ-นามสกุล</div><div class="rc-value" id="rcName">—</div></div>
+          <div class="rc-item"><div class="rc-label">ประเภทสมาชิก</div><div class="rc-value" id="rcType">—</div></div>
+          <div class="rc-item"><div class="rc-label">วันที่สมัคร</div><div class="rc-value" id="rcApply">—</div></div>
+          <div class="rc-item"><div class="rc-label">วันที่อนุมัติ</div><div class="rc-value" id="rcApprove">—</div></div>
+          <div class="rc-item"><div class="rc-label">วันหมดอายุสมาชิกภาพ</div><div class="rc-value" id="rcExpire">—</div></div>
+          <div class="rc-item"><div class="rc-label">หมายเหตุ</div><div class="rc-value" id="rcNote">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    © <span data-year></span> ชมรมนักสังคมสงเคราะห์และนักจิตวิทยา ป.วิ.อาญา (CPC–PSW Thailand)
+  </div>
+</footer>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/status.js"></script>
+</body>
+</html>

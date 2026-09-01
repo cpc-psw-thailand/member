@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สำหรับเจ้าหน้าที่ — CPC–PSW Thailand</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.png" alt="ตราสัญลักษณ์ CPC-PSW Thailand">
+      <span>
+        <span class="brand-th">CPC–PSW Thailand</span><br>
+        <span class="brand-en">Social Workers &amp; Psychologists under the Criminal Procedure Code</span>
+      </span>
+    </a>
+    <button class="nav-toggle" aria-label="เปิดเมนู">เมนู</button>
+    <nav class="site-nav">
+      <a href="index.html">หน้าแรก</a>
+      <a href="register.html">สมัครสมาชิก</a>
+      <a href="status.html">ตรวจสอบสถานะ</a>
+      <a href="admin.html" aria-current="page">สำหรับเจ้าหน้าที่</a>
+    </nav>
+  </div>
+</header>
+
+<section class="section" style="padding-top:40px">
+  <div class="wrap">
+
+    <!-- LOGIN VIEW -->
+    <div id="loginView" style="max-width:420px;margin:0 auto">
+      <h1 class="center">เข้าสู่ระบบเจ้าหน้าที่</h1>
+      <p class="muted center">สำหรับเจ้าหน้าที่และคณะกรรมการที่ได้รับมอบหมายเท่านั้น</p>
+      <hr class="rule center">
+      <div id="loginAlert" class="alert hidden" role="alert"></div>
+      <div class="panel">
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="password">รหัสผ่านเจ้าหน้าที่<span class="req">*</span></label>
+            <input type="password" id="password" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary" id="loginBtn" style="width:100%">เข้าสู่ระบบ</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="dashView" class="hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 style="margin-bottom:2px">รายการสมาชิก</h1>
+          <p class="muted" style="margin:0">ตรวจสอบ อนุมัติ และจัดการสถานะสมาชิกภาพ</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" id="refreshBtn">โหลดข้อมูลใหม่</button>
+          <button class="btn btn-outline btn-sm" id="logoutBtn">ออกจากระบบ</button>
+        </div>
+      </div>
+      <hr class="rule">
+
+      <div id="dashAlert" class="alert hidden" role="alert"></div>
+
+      <div class="filter-bar">
+        <select id="filterStatus">
+          <option value="">ทุกสถานะ</option>
+          <option value="รอตรวจสอบ">รอตรวจสอบ</option>
+          <option value="ใช้งานอยู่">ใช้งานอยู่</option>
+          <option value="ไม่อนุมัติ">ไม่อนุมัติ</option>
+          <option value="ระงับ">ระงับ</option>
+          <option value="หมดอายุ">หมดอายุ</option>
+        </select>
+        <input type="text" id="filterSearch" placeholder="ค้นหาชื่อ / เลขบัตรประชาชน / รหัสสมาชิก">
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>รหัสสมาชิก</th>
+              <th>ชื่อ-นามสกุล</th>
+              <th>วิชาชีพ</th>
+              <th>ประเภท</th>
+              <th>สถานะ</th>
+              <th>วันสมัคร</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="memberTableBody">
+            <tr><td colspan="7" class="center muted">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    © <span data-year></span> ชมรมนักสังคมสงเคราะห์และนักจิตวิทยา ป.วิ.อาญา (CPC–PSW Thailand)
+  </div>
+</footer>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/admin.js"></script>
+</body>
+</html>
