@@ -83,8 +83,30 @@
               <div class="hint">ใช้สำหรับแจ้งผลการพิจารณาและข่าวสารจากชมรม</div>
             </div>
             <div class="field full">
-              <label for="address">ที่อยู่ปัจจุบัน</label>
-              <textarea id="address"></textarea>
+              <label for="address">ที่อยู่ปัจจุบัน (บ้านเลขที่ / หมู่ / ถนน)</label>
+              <textarea id="address" placeholder="เช่น 123/45 หมู่ 6 ถนนสุขุมวิท"></textarea>
+            </div>
+            <div class="field">
+              <label for="province">จังหวัด<span class="req">*</span></label>
+              <select id="province" required>
+                <option value="">— เลือกจังหวัด —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="district">อำเภอ / เขต<span class="req">*</span></label>
+              <select id="district" required disabled>
+                <option value="">— เลือกจังหวัดก่อน —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="subdistrict">ตำบล / แขวง<span class="req">*</span></label>
+              <select id="subdistrict" required disabled>
+                <option value="">— เลือกอำเภอก่อน —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="zipcode">รหัสไปรษณีย์</label>
+              <input type="text" id="zipcode" readonly placeholder="กรอกที่อยู่ครบเพื่อแสดงอัตโนมัติ">
             </div>
           </div>
         </fieldset>
@@ -101,7 +123,7 @@
               </select>
             </div>
             <div class="field">
-              <label for="licenseNo">เลขที่ใบอนุญาต / เลขทะเบียนผู้เชี่ยวชาญ</label>
+              <label for="licenseNo">เลขที่ใบประกอบโรคศิลปะ</label>
               <input type="text" id="licenseNo">
             </div>
             <div class="field">
@@ -132,11 +154,34 @@
               <span class="mt-title">สมาชิกวิสามัญ</span>
               <span class="mt-desc">ผู้ปฏิบัติงานที่อยู่ระหว่างการขึ้นทะเบียน หรือสาขาวิชาชีพที่เกี่ยวข้อง เข้าร่วมกิจกรรมได้ แต่ไม่มีสิทธิออกเสียงในมติชมรม</span>
             </label>
-            <label class="member-type-opt">
-              <input type="radio" name="memberType" value="สมาชิกกิตติมศักดิ์">
-              <span class="mt-title">สมาชิกกิตติมศักดิ์</span>
-              <span class="mt-desc">ผู้ทรงคุณวุฒิที่ชมรมเชิญเข้าร่วมเป็นกรณีพิเศษ ได้รับเชิญร่วมกิจกรรม แต่ไม่มีสิทธิออกเสียง</span>
-            </label>
+          </div>
+          <p class="hint" style="margin-top:10px">สมาชิกกิตติมศักดิ์เป็นการเชิญโดยชมรมเป็นกรณีพิเศษ ไม่เปิดรับสมัครผ่านแบบฟอร์มนี้</p>
+        </fieldset>
+
+        <fieldset id="cpcDutyFieldset">
+          <legend>ข้อมูลผู้ทำหน้าที่นักจิตวิทยาและนักสังคมสงเคราะห์ ป.วิ.อาญา</legend>
+          <div class="field-grid">
+            <div class="field">
+              <label for="cpcRole">ตำแหน่ง<span class="req">*</span></label>
+              <select id="cpcRole">
+                <option value="">— เลือก —</option>
+                <option value="นักจิตวิทยา">นักจิตวิทยา</option>
+                <option value="นักสังคมสงเคราะห์">นักสังคมสงเคราะห์</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="cpcRegNo">เลขที่ทะเบียนผู้ทำหน้าที่ตาม ป.วิ.อาญา<span class="req">*</span></label>
+              <input type="text" id="cpcRegNo">
+            </div>
+            <div class="field">
+              <label for="cpcExperienceYears">ประสบการณ์ทำงาน (ปี)<span class="req">*</span></label>
+              <input type="number" id="cpcExperienceYears" min="0">
+            </div>
+            <div class="field">
+              <label for="cpcCardPhoto">แนบรูปบัตรผู้ทำหน้าที่ฯ<span class="req">*</span></label>
+              <input type="file" id="cpcCardPhoto" accept="image/*">
+              <div class="hint">ไฟล์รูปภาพ (JPG/PNG) ขนาดไม่เกิน 5 MB</div>
+            </div>
           </div>
         </fieldset>
 

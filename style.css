@@ -363,6 +363,23 @@ input:focus, select:focus, textarea:focus {
 
 textarea { min-height: 90px; resize: vertical; }
 
+input[type=file] {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px dashed #C9C3B3;
+  border-radius: var(--radius);
+  background: var(--cream);
+  font-family: var(--font-body);
+  font-size: .88rem;
+  color: var(--ink-soft);
+}
+
+select:disabled {
+  background: #F3F1EA;
+  color: #9A9689;
+  cursor: not-allowed;
+}
+
 .radio-row, .check-row {
   display: flex;
   gap: 20px;
@@ -383,12 +400,8 @@ textarea { min-height: 90px; resize: vertical; }
 /* member type selection cards */
 .member-type-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 14px;
-}
-
-@media (max-width: 720px) {
-  .member-type-grid { grid-template-columns: 1fr; }
 }
 
 .member-type-opt {

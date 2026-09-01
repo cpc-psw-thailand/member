@@ -56,6 +56,7 @@
           <p class="muted" style="margin:0">ตรวจสอบ อนุมัติ และจัดการสถานะสมาชิกภาพ</p>
         </div>
         <div style="display:flex;gap:8px">
+          <button class="btn btn-gold btn-sm" id="addHonoraryBtn">+ เพิ่มสมาชิกกิตติมศักดิ์</button>
           <button class="btn btn-outline btn-sm" id="refreshBtn">โหลดข้อมูลใหม่</button>
           <button class="btn btn-outline btn-sm" id="logoutBtn">ออกจากระบบ</button>
         </div>
@@ -63,6 +64,48 @@
       <hr class="rule">
 
       <div id="dashAlert" class="alert hidden" role="alert"></div>
+
+      <!-- ADD HONORARY MEMBER PANEL -->
+      <div id="honoraryPanel" class="panel hidden" style="margin-bottom:24px">
+        <h3 style="margin-bottom:4px">เพิ่มสมาชิกกิตติมศักดิ์</h3>
+        <p class="muted" style="margin-bottom:16px">สำหรับผู้ทรงคุณวุฒิที่ชมรมเชิญเป็นกรณีพิเศษ — ระบบจะออกรหัสสมาชิกและตั้งสถานะ "ใช้งานอยู่" ให้ทันที ไม่ต้องผ่านขั้นตอนรอตรวจสอบ</p>
+        <form id="honoraryForm" novalidate>
+          <div class="field-grid">
+            <div class="field">
+              <label for="hTitle">คำนำหน้า<span class="req">*</span></label>
+              <input type="text" id="hTitle" required>
+            </div>
+            <div class="field">
+              <label for="hFirstName">ชื่อ<span class="req">*</span></label>
+              <input type="text" id="hFirstName" required>
+            </div>
+            <div class="field">
+              <label for="hLastName">นามสกุล<span class="req">*</span></label>
+              <input type="text" id="hLastName" required>
+            </div>
+            <div class="field">
+              <label for="hPhone">เบอร์โทรศัพท์</label>
+              <input type="tel" id="hPhone">
+            </div>
+            <div class="field">
+              <label for="hEmail">อีเมล</label>
+              <input type="email" id="hEmail">
+            </div>
+            <div class="field">
+              <label for="hOrganization">หน่วยงาน / ตำแหน่ง</label>
+              <input type="text" id="hOrganization">
+            </div>
+            <div class="field full">
+              <label for="hNote">หมายเหตุ</label>
+              <input type="text" id="hNote" placeholder="เช่น เหตุผลที่เชิญเป็นสมาชิกกิตติมศักดิ์">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button type="submit" class="btn btn-primary" id="honoraryBtn">เพิ่มสมาชิก</button>
+            <button type="button" class="btn btn-outline" id="honoraryCancelBtn">ยกเลิก</button>
+          </div>
+        </form>
+      </div>
 
       <div class="filter-bar">
         <select id="filterStatus">
@@ -84,13 +127,14 @@
               <th>ชื่อ-นามสกุล</th>
               <th>วิชาชีพ</th>
               <th>ประเภท</th>
+              <th>เลขทะเบียน ป.วิ.อาญา</th>
               <th>สถานะ</th>
               <th>วันสมัคร</th>
               <th>จัดการ</th>
             </tr>
           </thead>
           <tbody id="memberTableBody">
-            <tr><td colspan="7" class="center muted">กำลังโหลดข้อมูล...</td></tr>
+            <tr><td colspan="8" class="center muted">กำลังโหลดข้อมูล...</td></tr>
           </tbody>
         </table>
       </div>

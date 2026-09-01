@@ -11,6 +11,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const filterStatus = document.getElementById("filterStatus");
   const filterSearch = document.getElementById("filterSearch");
 
+  const addHonoraryBtn = document.getElementById("addHonoraryBtn");
+  const honoraryPanel = document.getElementById("honoraryPanel");
+  const honoraryForm = document.getElementById("honoraryForm");
+  const honoraryBtn = document.getElementById("honoraryBtn");
+  const honoraryCancelBtn = document.getElementById("honoraryCancelBtn");
+
   function getPassword() {
     return sessionStorage.getItem("cpcpsw_admin_pass") || "";
   }
@@ -55,11 +61,58 @@ document.addEventListener("DOMContentLoaded", () => {
   filterStatus.addEventListener("change", renderTable);
   filterSearch.addEventListener("input", renderTable);
 
+  // ---- แผงเพิ่มสมาชิกกิตติมศักดิ์ ----
+  addHonoraryBtn.addEventListener("click", () => {
+    honoraryPanel.classList.toggle("hidden");
+  });
+  honoraryCancelBtn.addEventListener("click", () => {
+    honoraryForm.reset();
+    honoraryPanel.classList.add("hidden");
+  });
+
+  honoraryForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const dashAlert = document.getElementById("dashAlert");
+    hideAlert(dashAlert);
+
+    if (!honoraryForm.checkValidity()) {
+      honoraryForm.reportValidity();
+      return;
+    }
+
+    const data = {
+      title: document.getElementById("hTitle").value.trim(),
+      firstName: document.getElementById("hFirstName").value.trim(),
+      lastName: document.getElementById("hLastName").value.trim(),
+      phone: document.getElementById("hPhone").value.trim(),
+      email: document.getElementById("hEmail").value.trim(),
+      organization: document.getElementById("hOrganization").value.trim(),
+      note: document.getElementById("hNote").value.trim(),
+    };
+
+    setLoading(honoraryBtn, true);
+    try {
+      const res = await callApi("adminAddHonorary", { password: getPassword(), data });
+      if (res.ok) {
+        showAlert(dashAlert, "success", "เพิ่มสมาชิกกิตติมศักดิ์แล้ว รหัสสมาชิก: " + res.memberID);
+        honoraryForm.reset();
+        honoraryPanel.classList.add("hidden");
+        loadList();
+      } else {
+        showAlert(dashAlert, "error", res.error || "เพิ่มสมาชิกไม่สำเร็จ");
+      }
+    } catch (err) {
+      showAlert(dashAlert, "error", "เชื่อมต่อระบบไม่สำเร็จ: " + err.message);
+    } finally {
+      setLoading(honoraryBtn, false, "เพิ่มสมาชิก");
+    }
+  });
+
   async function loadList() {
     const dashAlert = document.getElementById("dashAlert");
     hideAlert(dashAlert);
     const tbody = document.getElementById("memberTableBody");
-    tbody.innerHTML = '<tr><td colspan="7" class="center muted">กำลังโหลดข้อมูล...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="center muted">กำลังโหลดข้อมูล...</td></tr>';
 
     try {
       const res = await callApi("adminList", { password: getPassword() });
@@ -68,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderTable();
       } else {
         showAlert(dashAlert, "error", res.error || "โหลดข้อมูลไม่สำเร็จ");
-        tbody.innerHTML = '<tr><td colspan="7" class="center muted">—</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="center muted">—</td></tr>';
       }
     } catch (err) {
       showAlert(dashAlert, "error", "เชื่อมต่อระบบไม่สำเร็จ: " + err.message);
@@ -90,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (rows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="center muted">ไม่พบข้อมูล</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="center muted">ไม่พบข้อมูล</td></tr>';
       return;
     }
 
@@ -98,8 +151,9 @@ document.addEventListener("DOMContentLoaded", () => {
       <tr data-row="${m.row}">
         <td>${m.memberID || "—"}</td>
         <td>${escapeHtml(m.title + " " + m.firstName + " " + m.lastName)}</td>
-        <td>${escapeHtml(m.profession)}</td>
+        <td>${escapeHtml(m.profession || "—")}</td>
         <td>${escapeHtml(m.memberType || "")}</td>
+        <td>${cpcRegCell(m)}</td>
         <td><span class="badge ${statusBadgeClass(m.status)}">${m.status}</span></td>
         <td>${m.applyDate}</td>
         <td>
@@ -113,6 +167,15 @@ document.addEventListener("DOMContentLoaded", () => {
     tbody.querySelectorAll("[data-action]").forEach((btn) => {
       btn.addEventListener("click", () => handleAction(btn.dataset.action, Number(btn.closest("tr").dataset.row)));
     });
+  }
+
+  function cpcRegCell(m) {
+    if (!m.cpcRegNo && !m.cpcCardPhotoURL) return "—";
+    const regText = escapeHtml(m.cpcRegNo || "—");
+    const photoLink = m.cpcCardPhotoURL
+      ? ` <a href="${escapeHtml(m.cpcCardPhotoURL)}" target="_blank" rel="noopener">(ดูรูปบัตร)</a>`
+      : "";
+    return regText + photoLink;
   }
 
   function actionButtons(m) {
