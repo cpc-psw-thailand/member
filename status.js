@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const renewWrap = document.getElementById("renewWrap");
   const renewBtn = document.getElementById("renewBtn");
   const renewAlert = document.getElementById("renewAlert");
+  const saveCardBtn = document.getElementById("saveCardBtn");
 
   async function runCheck(nationalID, phone) {
     hideAlert(alertBox);
@@ -45,9 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("ecType").textContent = r.memberType;
       document.getElementById("ecMemberID").textContent = r.memberID || "—";
       document.getElementById("ecExpire").textContent = r.expireDate || "—";
-      const qrData = encodeURIComponent(r.memberID || r.fullName);
-      document.getElementById("ecQr").src =
-        `https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=0&data=${qrData}`;
     } else {
       document.getElementById("rcMemberID").textContent = r.memberID || "ยังไม่ออกรหัส";
       const statusEl = document.getElementById("rcStatus");
@@ -108,5 +106,33 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("nationalID").value = nidParam;
     document.getElementById("phone").value = phParam;
     runCheck(nidParam, phParam);
+  }
+
+  // ---- บันทึกภาพบัตรสมาชิกเป็นไฟล์รูป ----
+  if (saveCardBtn) {
+    saveCardBtn.addEventListener("click", async () => {
+      const cardEl = document.querySelector(".member-ecard");
+      if (!cardEl || typeof html2canvas === "undefined") return;
+
+      setLoading(saveCardBtn, true);
+      try {
+        const canvas = await html2canvas(cardEl, {
+          backgroundColor: null,
+          scale: 2,
+          useCORS: true,
+        });
+        const link = document.createElement("a");
+        const idPart = (lastResult && lastResult.memberID ? lastResult.memberID : "member").replace(/[^a-zA-Z0-9-]/g, "");
+        link.download = "CPC-PSW-" + idPart + ".png";
+        link.href = canvas.toDataURL("image/png");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (err) {
+        alert("บันทึกภาพบัตรไม่สำเร็จ กรุณาลองใหม่ หรือใช้วิธีแคปหน้าจอแทน");
+      } finally {
+        setLoading(saveCardBtn, false, "บันทึกภาพบัตรสมาชิก");
+      }
+    });
   }
 });
