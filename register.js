@@ -2,6 +2,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("registerForm");
   const alertBox = document.getElementById("alertBox");
   const submitBtn = document.getElementById("submitBtn");
+  const titleSelect = document.getElementById("title");
+  const titleOtherField = document.getElementById("titleOtherField");
+  const titleOtherInput = document.getElementById("titleOther");
+
+  function syncTitleOther() {
+    const isOther = titleSelect.value === "อื่น ๆ";
+    titleOtherField.classList.toggle("hidden", !isOther);
+    titleOtherInput.required = isOther;
+    if (!isOther) titleOtherInput.value = "";
+  }
+  titleSelect.addEventListener("change", syncTitleOther);
+  syncTitleOther();
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -18,8 +30,12 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const titleValue = titleSelect.value === "อื่น ๆ"
+      ? titleOtherInput.value.trim()
+      : titleSelect.value;
+
     const data = {
-      title: document.getElementById("title").value,
+      title: titleValue,
       firstName: document.getElementById("firstName").value.trim(),
       lastName: document.getElementById("lastName").value.trim(),
       nationalID: nationalID,
@@ -41,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await callApi("register", { data });
       if (res.ok) {
         form.reset();
+        syncTitleOther();
         showAlert(alertBox, "success", res.message || "ส่งใบสมัครเรียบร้อยแล้ว");
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {

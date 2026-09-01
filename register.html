@@ -52,7 +52,10 @@
                 <option value="อื่น ๆ">อื่น ๆ</option>
               </select>
             </div>
-            <div class="field"></div>
+            <div class="field hidden" id="titleOtherField">
+              <label for="titleOther">ระบุคำนำหน้า<span class="req">*</span></label>
+              <input type="text" id="titleOther">
+            </div>
             <div class="field">
               <label for="firstName">ชื่อ<span class="req">*</span></label>
               <input type="text" id="firstName" required>
@@ -75,8 +78,9 @@
               <input type="tel" id="phone" required>
             </div>
             <div class="field">
-              <label for="email">อีเมล</label>
-              <input type="email" id="email">
+              <label for="email">อีเมล<span class="req">*</span></label>
+              <input type="email" id="email" required>
+              <div class="hint">ใช้สำหรับแจ้งผลการพิจารณาและข่าวสารจากชมรม</div>
             </div>
             <div class="field full">
               <label for="address">ที่อยู่ปัจจุบัน</label>
@@ -117,20 +121,43 @@
 
         <fieldset>
           <legend>ประเภทสมาชิก</legend>
-          <div class="radio-row">
-            <label class="radio-opt"><input type="radio" name="memberType" value="สมาชิกสามัญ" checked> สมาชิกสามัญ</label>
-            <label class="radio-opt"><input type="radio" name="memberType" value="สมาชิกวิสามัญ"> สมาชิกวิสามัญ</label>
-            <label class="radio-opt"><input type="radio" name="memberType" value="สมาชิกกิตติมศักดิ์"> สมาชิกกิตติมศักดิ์</label>
+          <div class="member-type-grid">
+            <label class="member-type-opt">
+              <input type="radio" name="memberType" value="สมาชิกสามัญ" checked>
+              <span class="mt-title">สมาชิกสามัญ</span>
+              <span class="mt-desc">นักสังคมสงเคราะห์ / นักจิตวิทยา ที่ขึ้นทะเบียนเป็นผู้เชี่ยวชาญตาม ป.วิ.อาญาแล้ว มีสิทธิออกเสียงและเข้าร่วมกิจกรรมทุกประเภท</span>
+            </label>
+            <label class="member-type-opt">
+              <input type="radio" name="memberType" value="สมาชิกวิสามัญ">
+              <span class="mt-title">สมาชิกวิสามัญ</span>
+              <span class="mt-desc">ผู้ปฏิบัติงานที่อยู่ระหว่างการขึ้นทะเบียน หรือสาขาวิชาชีพที่เกี่ยวข้อง เข้าร่วมกิจกรรมได้ แต่ไม่มีสิทธิออกเสียงในมติชมรม</span>
+            </label>
+            <label class="member-type-opt">
+              <input type="radio" name="memberType" value="สมาชิกกิตติมศักดิ์">
+              <span class="mt-title">สมาชิกกิตติมศักดิ์</span>
+              <span class="mt-desc">ผู้ทรงคุณวุฒิที่ชมรมเชิญเข้าร่วมเป็นกรณีพิเศษ ได้รับเชิญร่วมกิจกรรม แต่ไม่มีสิทธิออกเสียง</span>
+            </label>
           </div>
         </fieldset>
 
         <fieldset>
-          <legend>ความยินยอมด้านข้อมูลส่วนบุคคล</legend>
+          <legend>ความยินยอมด้านข้อมูลส่วนบุคคล (PDPA)</legend>
           <div class="consent-box stack">
-            <p style="margin:0">ข้อมูลของท่านจะถูกใช้เพื่อการพิจารณาและบริหารจัดการสมาชิกภาพของชมรมเท่านั้น และจะถูกเก็บรักษาตามนโยบายคุ้มครองข้อมูลส่วนบุคคล (PDPA) ของชมรม</p>
+            <div>
+              <strong style="color:var(--navy);display:block;margin-bottom:6px;font-size:.9rem">วัตถุประสงค์การเก็บข้อมูล</strong>
+              <p style="margin:0 0 12px">ชมรมฯ เก็บรวบรวมข้อมูลของท่านเพื่อใช้พิจารณาคุณสมบัติ ออกรหัสสมาชิก จัดทำบัตรสมาชิก ติดต่อแจ้งผลการสมัคร และแจ้งข่าวสาร/กิจกรรมของชมรมเท่านั้น</p>
+            </div>
+            <div>
+              <strong style="color:var(--navy);display:block;margin-bottom:6px;font-size:.9rem">การเก็บรักษาและสิทธิของท่าน</strong>
+              <ul style="margin:0 0 12px;padding-left:20px">
+                <li>ข้อมูลจะถูกเก็บไว้ตลอดระยะเวลาที่เป็นสมาชิก และตามระยะเวลาที่คณะกรรมการกำหนดหลังสิ้นสุดสมาชิกภาพ</li>
+                <li>ท่านมีสิทธิขอเข้าถึง แก้ไข ถอนความยินยอม หรือขอให้ลบข้อมูลของท่านได้ทุกเมื่อ โดยติดต่อเจ้าหน้าที่ชมรม</li>
+                <li>ข้อมูลจะไม่ถูกเปิดเผยต่อบุคคลภายนอก เว้นแต่ได้รับความยินยอมจากท่าน หรือเป็นไปตามที่กฎหมายกำหนด</li>
+              </ul>
+            </div>
             <label class="check-opt">
               <input type="checkbox" id="consent" required>
-              ข้าพเจ้ายินยอมให้เก็บรวบรวมและใช้ข้อมูลข้างต้นเพื่อการสมัครสมาชิก<span class="req">*</span>
+              ข้าพเจ้าได้อ่านและเข้าใจวัตถุประสงค์ข้างต้น และยินยอมให้เก็บรวบรวม ใช้ ข้อมูลส่วนบุคคลของข้าพเจ้าเพื่อการสมัครและบริหารจัดการสมาชิกภาพ<span class="req">*</span>
             </label>
           </div>
         </fieldset>
