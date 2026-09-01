@@ -55,18 +55,27 @@
       <!-- E-CARD (แสดงเมื่อสถานะ "ใช้งานอยู่") -->
       <div id="ecardWrap" class="hidden">
         <div class="member-ecard" id="memberEcard">
-          <div class="ecard-top">
+          <div class="ecard-texture" aria-hidden="true"></div>
+          <div class="ecard-ring" aria-hidden="true"></div>
+          <img src="logo.png" class="ecard-watermark" alt="" aria-hidden="true">
+          <div class="ecard-dots" aria-hidden="true"></div>
+          <div class="ecard-diagonal" aria-hidden="true"></div>
+          <div class="ecard-diagonal d2" aria-hidden="true"></div>
+
+          <div class="ecard-row ecard-top">
             <img src="logo.png" class="ecard-logo" alt="ตราสัญลักษณ์ CPC-PSW Thailand">
             <div>
               <div class="ecard-org-th">CPC–PSW THAILAND</div>
               <div class="ecard-org-sub">ชมรมนักสังคมสงเคราะห์และนักจิตวิทยา ป.วิ.อาญา</div>
             </div>
           </div>
-          <div class="ecard-body">
+
+          <div class="ecard-row ecard-body">
             <div class="ecard-name" id="ecName">—</div>
             <div class="ecard-type" id="ecType">—</div>
           </div>
-          <div class="ecard-meta">
+
+          <div class="ecard-row ecard-meta">
             <div class="ecard-meta-item">
               <div class="ecard-label">รหัสสมาชิก</div>
               <div class="ecard-value" id="ecMemberID">—</div>
@@ -75,9 +84,6 @@
               <div class="ecard-label">สมาชิกภาพถึงวันที่</div>
               <div class="ecard-value" id="ecExpire">—</div>
             </div>
-          </div>
-          <div class="ecard-bottom">
-            <div class="ecard-tagline">ยุติธรรมที่ปลอดภัย • พิทักษ์สิทธิ์<br>ฟื้นฟูใจ • เคารพในศักดิ์ศรีความเป็นมนุษย์</div>
           </div>
         </div>
         <div class="center" style="margin-top:16px">
