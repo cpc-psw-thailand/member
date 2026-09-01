@@ -184,6 +184,27 @@
   </div>
 </div>
 
+<!-- CONFIRM MODAL -->
+<div id="confirmModal" class="modal-backdrop hidden">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-head">
+      <h3 id="confirmTitle" style="margin:0">ยืนยันการดำเนินการ</h3>
+      <button type="button" class="modal-close" id="confirmCloseBtn" aria-label="ปิด">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmMessage" style="margin:0 0 16px"></p>
+      <div id="confirmReasonWrap" class="field hidden">
+        <label for="confirmReasonInput">เหตุผล (ถ้ามี)</label>
+        <textarea id="confirmReasonInput"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button type="button" class="btn btn-outline" id="confirmCancelBtn">ยกเลิก</button>
+        <button type="button" class="btn btn-primary" id="confirmOkBtn">ยืนยัน</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <footer class="site-footer">
   <div class="wrap">
     © <span data-year></span> ชมรมนักสังคมสงเคราะห์และนักจิตวิทยา ป.วิ.อาญา (CPC–PSW Thailand)

@@ -51,23 +51,66 @@
     </div>
 
     <div id="resultWrap" class="hidden" style="margin-top:24px">
-      <div class="result-card">
-        <div class="rc-head">
-          <div>
-            <div style="font-size:.8rem;color:var(--gold-soft)">รหัสสมาชิก</div>
-            <div style="font-family:var(--font-display);font-size:1.2rem" id="rcMemberID">—</div>
+
+      <!-- E-CARD (แสดงเมื่อสถานะ "ใช้งานอยู่") -->
+      <div id="ecardWrap" class="hidden">
+        <div class="member-ecard">
+          <div class="ecard-top">
+            <img src="logo.png" class="ecard-logo" alt="ตราสัญลักษณ์ CPC-PSW Thailand">
+            <div class="ecard-org">
+              <div class="ecard-org-th">CPC–PSW THAILAND</div>
+              <div class="ecard-org-en">Social Workers &amp; Psychologists<br>under the Criminal Procedure Code</div>
+            </div>
           </div>
-          <span class="badge" id="rcStatus">—</span>
-        </div>
-        <div class="rc-body">
-          <div class="rc-item"><div class="rc-label">ชื่อ-นามสกุล</div><div class="rc-value" id="rcName">—</div></div>
-          <div class="rc-item"><div class="rc-label">ประเภทสมาชิก</div><div class="rc-value" id="rcType">—</div></div>
-          <div class="rc-item"><div class="rc-label">วันที่สมัคร</div><div class="rc-value" id="rcApply">—</div></div>
-          <div class="rc-item"><div class="rc-label">วันที่อนุมัติ</div><div class="rc-value" id="rcApprove">—</div></div>
-          <div class="rc-item"><div class="rc-label">วันหมดอายุสมาชิกภาพ</div><div class="rc-value" id="rcExpire">—</div></div>
-          <div class="rc-item"><div class="rc-label">หมายเหตุ</div><div class="rc-value" id="rcNote">—</div></div>
+          <div class="ecard-body">
+            <div class="ecard-name" id="ecName">—</div>
+            <div class="ecard-type" id="ecType">—</div>
+            <div class="ecard-meta">
+              <div class="ecard-meta-item">
+                <div class="ecard-label">รหัสสมาชิก</div>
+                <div class="ecard-value" id="ecMemberID">—</div>
+              </div>
+              <div class="ecard-meta-item">
+                <div class="ecard-label">สมาชิกภาพถึงวันที่</div>
+                <div class="ecard-value" id="ecExpire">—</div>
+              </div>
+            </div>
+          </div>
+          <div class="ecard-bottom">
+            <img class="ecard-qr" id="ecQr" alt="QR รหัสสมาชิก">
+            <div class="ecard-tagline">ยุติธรรมที่ปลอดภัย • พิทักษ์สิทธิ์ • ฟื้นฟูใจ<br>เคารพในศักดิ์ศรีความเป็นมนุษย์</div>
+          </div>
         </div>
       </div>
+
+      <!-- การ์ดข้อมูลทั่วไป (สถานะอื่นที่ไม่ใช่ "ใช้งานอยู่") -->
+      <div id="plainResultWrap">
+        <div class="result-card">
+          <div class="rc-head">
+            <div>
+              <div style="font-size:.8rem;color:var(--gold-soft)">รหัสสมาชิก</div>
+              <div style="font-family:var(--font-display);font-size:1.2rem" id="rcMemberID">—</div>
+            </div>
+            <span class="badge" id="rcStatus">—</span>
+          </div>
+          <div class="rc-body">
+            <div class="rc-item"><div class="rc-label">ชื่อ-นามสกุล</div><div class="rc-value" id="rcName">—</div></div>
+            <div class="rc-item"><div class="rc-label">ประเภทสมาชิก</div><div class="rc-value" id="rcType">—</div></div>
+            <div class="rc-item"><div class="rc-label">วันที่สมัคร</div><div class="rc-value" id="rcApply">—</div></div>
+            <div class="rc-item"><div class="rc-label">วันที่อนุมัติ</div><div class="rc-value" id="rcApprove">—</div></div>
+            <div class="rc-item"><div class="rc-label">วันหมดอายุสมาชิกภาพ</div><div class="rc-value" id="rcExpire">—</div></div>
+            <div class="rc-item"><div class="rc-label">หมายเหตุ</div><div class="rc-value" id="rcNote">—</div></div>
+          </div>
+        </div>
+
+        <!-- ปุ่มต่ออายุ (แสดงเมื่อสถานะ "หมดอายุ") -->
+        <div id="renewWrap" class="hidden" style="margin-top:16px">
+          <div class="alert alert-info">สมาชิกภาพของท่านหมดอายุแล้ว กดปุ่มด้านล่างเพื่อส่งคำขอต่ออายุ เจ้าหน้าที่จะตรวจสอบและอนุมัติอีกครั้ง</div>
+          <div id="renewAlert" class="alert hidden" role="alert"></div>
+          <button class="btn btn-gold" id="renewBtn">ต่ออายุสมาชิกภาพ</button>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>

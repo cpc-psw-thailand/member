@@ -113,6 +113,48 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ---- โมดัลรายละเอียด ----
+  // ---- โมดัลยืนยัน (แทน confirm()/prompt() ของเบราว์เซอร์) ----
+  function showConfirm({ title, message, withReason = false, confirmLabel = "ยืนยัน", danger = false }) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById("confirmModal");
+      const okBtn = document.getElementById("confirmOkBtn");
+      const cancelBtn = document.getElementById("confirmCancelBtn");
+      const closeBtn = document.getElementById("confirmCloseBtn");
+      const reasonWrap = document.getElementById("confirmReasonWrap");
+      const reasonInput = document.getElementById("confirmReasonInput");
+
+      document.getElementById("confirmTitle").textContent = title;
+      document.getElementById("confirmMessage").textContent = message;
+      reasonWrap.classList.toggle("hidden", !withReason);
+      reasonInput.value = "";
+      okBtn.textContent = confirmLabel;
+      okBtn.className = "btn " + (danger ? "btn-danger" : "btn-primary");
+      modal.classList.remove("hidden");
+
+      function cleanup(result) {
+        modal.classList.add("hidden");
+        okBtn.removeEventListener("click", onOk);
+        cancelBtn.removeEventListener("click", onCancel);
+        closeBtn.removeEventListener("click", onCancel);
+        modal.removeEventListener("click", onBackdrop);
+        resolve(result);
+      }
+      function onOk() {
+        cleanup(withReason ? { confirmed: true, reason: reasonInput.value.trim() } : { confirmed: true });
+      }
+      function onCancel() {
+        cleanup({ confirmed: false });
+      }
+      function onBackdrop(e) {
+        if (e.target === modal) onCancel();
+      }
+      okBtn.addEventListener("click", onOk);
+      cancelBtn.addEventListener("click", onCancel);
+      closeBtn.addEventListener("click", onCancel);
+      modal.addEventListener("click", onBackdrop);
+    });
+  }
+
   function driveIdFromValue(v) {
     if (!v) return "";
     const s = String(v);
@@ -360,20 +402,42 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = getPassword();
 
     if (action === "approve") {
-      if (!confirm("ยืนยันการอนุมัติสมาชิกรายนี้ และออกรหัสสมาชิก?")) return;
+      const { confirmed } = await showConfirm({
+        title: "อนุมัติสมาชิก",
+        message: "ยืนยันการอนุมัติสมาชิกรายนี้ และออกรหัสสมาชิก? ระบบจะส่งอีเมลแจ้งผลพร้อมลิงก์ดูบัตรสมาชิกให้อัตโนมัติ",
+        confirmLabel: "อนุมัติ",
+      });
+      if (!confirmed) return;
       const res = await callApi("adminApprove", { password, row });
       finishAction(res, res.ok ? ("อนุมัติสำเร็จ รหัสสมาชิก: " + res.memberID) : null);
     } else if (action === "reject") {
-      const reason = prompt("ระบุเหตุผลที่ไม่อนุมัติ (ถ้ามี):", "");
-      if (reason === null) return;
+      const { confirmed, reason } = await showConfirm({
+        title: "ไม่อนุมัติใบสมัคร",
+        message: "ระบุเหตุผลที่ไม่อนุมัติ (ถ้ามี) แล้วกดยืนยัน",
+        withReason: true,
+        confirmLabel: "ยืนยันไม่อนุมัติ",
+        danger: true,
+      });
+      if (!confirmed) return;
       const res = await callApi("adminReject", { password, row, reason });
       finishAction(res, res.ok ? "บันทึกผลไม่อนุมัติแล้ว" : null);
     } else if (action === "suspend") {
-      if (!confirm("ยืนยันการระงับสมาชิกภาพรายนี้?")) return;
+      const { confirmed } = await showConfirm({
+        title: "ระงับสมาชิกภาพ",
+        message: "ยืนยันการระงับสมาชิกภาพรายนี้?",
+        confirmLabel: "ระงับ",
+        danger: true,
+      });
+      if (!confirmed) return;
       const res = await callApi("adminSuspend", { password, row });
       finishAction(res, res.ok ? "ระงับสมาชิกภาพแล้ว" : null);
     } else if (action === "reactivate") {
-      if (!confirm("ยืนยันการคืนสถานะใช้งานอยู่ให้สมาชิกรายนี้?")) return;
+      const { confirmed } = await showConfirm({
+        title: "คืนสถานะสมาชิก",
+        message: "ยืนยันการคืนสถานะใช้งานอยู่ให้สมาชิกรายนี้?",
+        confirmLabel: "คืนสถานะ",
+      });
+      if (!confirmed) return;
       const res = await callApi("adminReactivate", { password, row });
       finishAction(res, res.ok ? "คืนสถานะเรียบร้อยแล้ว" : null);
     }
