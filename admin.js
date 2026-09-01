@@ -113,6 +113,27 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ---- โมดัลรายละเอียด ----
+  function driveIdFromValue(v) {
+    if (!v) return "";
+    const s = String(v);
+    // ค่าที่เก็บอาจเป็น Drive File ID ตรง ๆ (แบบใหม่) หรือเป็น URL เต็ม (แถวเก่าก่อนอัปเดต)
+    let m = s.match(/[?&]id=([^&]+)/);
+    if (m) return m[1];
+    m = s.match(/\/d\/([^/]+)/);
+    if (m) return m[1];
+    return s; // สมมติว่าเป็น ID อยู่แล้ว
+  }
+
+  function drivePhotoSrc(v) {
+    const id = driveIdFromValue(v);
+    return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w1000` : "";
+  }
+
+  function drivePhotoLink(v) {
+    const id = driveIdFromValue(v);
+    return id ? `https://drive.google.com/file/d/${id}/view` : "";
+  }
+
   function closeModal() {
     detailModal.classList.add("hidden");
   }
@@ -194,9 +215,9 @@ document.addEventListener("DOMContentLoaded", () => {
           ${m.cpcCardPhotoURL ? `
             <div style="margin-top:12px">
               <div class="dt-label" style="margin-bottom:6px">รูปบัตรผู้ทำหน้าที่ฯ</div>
-              <img class="detail-photo" src="${escapeHtml(m.cpcCardPhotoURL)}" alt="รูปบัตรผู้ทำหน้าที่ฯ" loading="lazy">
+              <img class="detail-photo" src="${escapeHtml(drivePhotoSrc(m.cpcCardPhotoURL))}" alt="รูปบัตรผู้ทำหน้าที่ฯ" loading="lazy" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('p'),{className:'muted',textContent:'ไม่สามารถแสดงรูปตัวอย่างได้ กรุณากดลิงก์ด้านล่างเพื่อเปิดดูรูป'}))">
               <div style="margin-top:6px">
-                <a href="${escapeHtml(m.cpcCardPhotoURL)}" target="_blank" rel="noopener">เปิดรูปในแท็บใหม่</a>
+                <a href="${escapeHtml(drivePhotoLink(m.cpcCardPhotoURL))}" target="_blank" rel="noopener">เปิดรูปในแท็บใหม่</a>
               </div>
             </div>
           ` : ""}
@@ -312,7 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!m.cpcRegNo && !m.cpcCardPhotoURL) return "—";
     const regText = escapeHtml(m.cpcRegNo || "—");
     const photoLink = m.cpcCardPhotoURL
-      ? ` <a href="${escapeHtml(m.cpcCardPhotoURL)}" target="_blank" rel="noopener">(ดูรูปบัตร)</a>`
+      ? ` <a href="${escapeHtml(drivePhotoLink(m.cpcCardPhotoURL))}" target="_blank" rel="noopener">(ดูรูปบัตร)</a>`
       : "";
     return regText + photoLink;
   }

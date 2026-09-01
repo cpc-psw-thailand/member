@@ -143,14 +143,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const provinceName = provinceSelect.selectedOptions[0]?.textContent || "";
     const districtName = districtSelect.selectedOptions[0]?.textContent || "";
     const subdistrictName = subdistrictSelect.selectedOptions[0]?.textContent || "";
+    // ที่อยู่เก็บเฉพาะบ้านเลขที่/หมู่/ถนนที่พิมพ์เอง ส่วนตำบล/อำเภอ/จังหวัด/รหัสไปรษณีย์
+    // เก็บแยกเป็นคอลัมน์ของตัวเองอยู่แล้ว (ไม่ต้องต่อรวมกันซ้ำ)
     const addressDetail = document.getElementById("address").value.trim();
-    const fullAddress = [
-      addressDetail,
-      subdistrictName && ("ตำบล/แขวง" + subdistrictName),
-      districtName && ("อำเภอ/เขต" + districtName),
-      provinceName && ("จังหวัด" + provinceName),
-      zipcodeInput.value && zipcodeInput.value,
-    ].filter(Boolean).join(" ");
 
     const isSamanya = form.querySelector('input[name="memberType"]:checked').value === "สมาชิกสามัญ";
 
@@ -179,7 +174,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       birthDate: document.getElementById("birthDate").value,
       phone: document.getElementById("phone").value.trim(),
       email: document.getElementById("email").value.trim(),
-      address: fullAddress,
+      address: addressDetail,
       province: provinceName,
       district: districtName,
       subdistrict: subdistrictName,
