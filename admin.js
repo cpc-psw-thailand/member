@@ -17,6 +17,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const honoraryBtn = document.getElementById("honoraryBtn");
   const honoraryCancelBtn = document.getElementById("honoraryCancelBtn");
 
+  const detailModal = document.getElementById("detailModal");
+  const modalBody = document.getElementById("modalBody");
+  const modalCloseBtn = document.getElementById("modalCloseBtn");
+
   function getPassword() {
     return sessionStorage.getItem("cpcpsw_admin_pass") || "";
   }
@@ -108,6 +112,110 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // ---- โมดัลรายละเอียด ----
+  function closeModal() {
+    detailModal.classList.add("hidden");
+  }
+  modalCloseBtn.addEventListener("click", closeModal);
+  detailModal.addEventListener("click", (e) => {
+    if (e.target === detailModal) closeModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeModal();
+  });
+
+  function openDetail(m) {
+    modalBody.innerHTML = renderDetail(m);
+    detailModal.classList.remove("hidden");
+  }
+
+  function detailItem(label, value) {
+    return `
+      <div class="detail-item">
+        <div class="dt-label">${escapeHtml(label)}</div>
+        <div class="dt-value">${escapeHtml(value) || "—"}</div>
+      </div>
+    `;
+  }
+
+  function renderDetail(m) {
+    let html = `
+      <div class="detail-section">
+        <h4>ข้อมูลสมาชิก</h4>
+        <div class="detail-grid">
+          ${detailItem("รหัสสมาชิก", m.memberID || "ยังไม่ออกรหัส")}
+          ${detailItem("สถานะ", m.status)}
+          ${detailItem("ประเภทสมาชิก", m.memberType)}
+          ${detailItem("วันที่สมัคร", m.applyDate)}
+          ${detailItem("วันที่อนุมัติ", m.approveDate)}
+          ${detailItem("วันหมดอายุ", m.expireDate)}
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h4>ข้อมูลส่วนบุคคล</h4>
+        <div class="detail-grid">
+          ${detailItem("ชื่อ-นามสกุล", (m.title + " " + m.firstName + " " + m.lastName).trim())}
+          ${detailItem("เลขบัตรประชาชน", m.nationalID)}
+          ${detailItem("วันเดือนปีเกิด", m.birthDate)}
+          ${detailItem("เบอร์โทรศัพท์", m.phone)}
+          ${detailItem("อีเมล", m.email)}
+        </div>
+        <div class="detail-grid" style="margin-top:10px">
+          ${detailItem("ที่อยู่", m.address)}
+          ${detailItem("ตำบล/แขวง", m.subdistrict)}
+          ${detailItem("อำเภอ/เขต", m.district)}
+          ${detailItem("จังหวัด", m.province)}
+          ${detailItem("รหัสไปรษณีย์", m.zipcode)}
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h4>ข้อมูลวิชาชีพ</h4>
+        <div class="detail-grid">
+          ${detailItem("วิชาชีพ", m.profession)}
+          ${detailItem("เลขที่ใบประกอบโรคศิลปะ", m.licenseNo)}
+          ${detailItem("หน่วยงานต้นสังกัด", m.organization)}
+          ${detailItem("วุฒิการศึกษา", m.education)}
+          ${detailItem("ประสบการณ์ทำงาน (ปี)", m.experienceYears)}
+        </div>
+      </div>
+    `;
+
+    if (m.cpcRole || m.cpcRegNo || m.cpcCardPhotoURL) {
+      html += `
+        <div class="detail-section">
+          <h4>ข้อมูลผู้ทำหน้าที่นักจิตวิทยาและนักสังคมสงเคราะห์ ป.วิ.อาญา</h4>
+          <div class="detail-grid">
+            ${detailItem("ตำแหน่ง", m.cpcRole)}
+            ${detailItem("เลขที่ทะเบียน ป.วิ.อาญา", m.cpcRegNo)}
+            ${detailItem("ประสบการณ์ทำงาน (ปี)", m.cpcExperienceYears)}
+          </div>
+          ${m.cpcCardPhotoURL ? `
+            <div style="margin-top:12px">
+              <div class="dt-label" style="margin-bottom:6px">รูปบัตรผู้ทำหน้าที่ฯ</div>
+              <img class="detail-photo" src="${escapeHtml(m.cpcCardPhotoURL)}" alt="รูปบัตรผู้ทำหน้าที่ฯ" loading="lazy">
+              <div style="margin-top:6px">
+                <a href="${escapeHtml(m.cpcCardPhotoURL)}" target="_blank" rel="noopener">เปิดรูปในแท็บใหม่</a>
+              </div>
+            </div>
+          ` : ""}
+        </div>
+      `;
+    }
+
+    if (m.note) {
+      html += `
+        <div class="detail-section">
+          <h4>หมายเหตุ</h4>
+          <p style="margin:0">${escapeHtml(m.note)}</p>
+        </div>
+      `;
+    }
+
+    return html;
+  }
+
   async function loadList() {
     const dashAlert = document.getElementById("dashAlert");
     hideAlert(dashAlert);
@@ -118,6 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await callApi("adminList", { password: getPassword() });
       if (res.ok) {
         currentList = res.list.reverse(); // ล่าสุดขึ้นก่อน
+        renderStats();
         renderTable();
       } else {
         showAlert(dashAlert, "error", res.error || "โหลดข้อมูลไม่สำเร็จ");
@@ -126,6 +235,26 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       showAlert(dashAlert, "error", "เชื่อมต่อระบบไม่สำเร็จ: " + err.message);
     }
+  }
+
+  function renderStats() {
+    const counts = {
+      total: currentList.length,
+      pending: 0, active: 0, suspended: 0, expired: 0, rejected: 0,
+    };
+    currentList.forEach((m) => {
+      if (m.status === "รอตรวจสอบ") counts.pending++;
+      else if (m.status === "ใช้งานอยู่") counts.active++;
+      else if (m.status === "ระงับ") counts.suspended++;
+      else if (m.status === "หมดอายุ") counts.expired++;
+      else if (m.status === "ไม่อนุมัติ") counts.rejected++;
+    });
+    document.getElementById("statTotal").textContent = counts.total;
+    document.getElementById("statPending").textContent = counts.pending;
+    document.getElementById("statActive").textContent = counts.active;
+    document.getElementById("statSuspended").textContent = counts.suspended;
+    document.getElementById("statExpired").textContent = counts.expired;
+    document.getElementById("statRejected").textContent = counts.rejected;
   }
 
   function renderTable() {
@@ -150,7 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
     tbody.innerHTML = rows.map((m) => `
       <tr data-row="${m.row}">
         <td>${m.memberID || "—"}</td>
-        <td>${escapeHtml(m.title + " " + m.firstName + " " + m.lastName)}</td>
+        <td><a href="#" data-action="detail" style="font-weight:600">${escapeHtml(m.title + " " + m.firstName + " " + m.lastName)}</a></td>
         <td>${escapeHtml(m.profession || "—")}</td>
         <td>${escapeHtml(m.memberType || "")}</td>
         <td>${cpcRegCell(m)}</td>
@@ -158,13 +287,23 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${m.applyDate}</td>
         <td>
           <div class="row-actions">
+            <button class="btn btn-outline btn-sm" data-action="detail">ดูรายละเอียด</button>
             ${actionButtons(m)}
           </div>
         </td>
       </tr>
     `).join("");
 
-    tbody.querySelectorAll("[data-action]").forEach((btn) => {
+    tbody.querySelectorAll('[data-action="detail"]').forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        const row = Number(el.closest("tr").dataset.row);
+        const member = currentList.find((m) => m.row === row);
+        if (member) openDetail(member);
+      });
+    });
+
+    tbody.querySelectorAll("[data-action]:not([data-action='detail'])").forEach((btn) => {
       btn.addEventListener("click", () => handleAction(btn.dataset.action, Number(btn.closest("tr").dataset.row)));
     });
   }
@@ -191,7 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (m.status === "ระงับ") {
       return `<button class="btn btn-outline btn-sm" data-action="reactivate">คืนสถานะ</button>`;
     }
-    return "—";
+    return "";
   }
 
   async function handleAction(action, row) {

@@ -65,6 +65,34 @@
 
       <div id="dashAlert" class="alert hidden" role="alert"></div>
 
+      <!-- STATS DASHBOARD -->
+      <div class="stat-grid" id="statGrid">
+        <div class="stat-card">
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-label">สมาชิกทั้งหมด</div>
+        </div>
+        <div class="stat-card stat-pending">
+          <div class="stat-value" id="statPending">0</div>
+          <div class="stat-label">รอตรวจสอบ</div>
+        </div>
+        <div class="stat-card stat-active">
+          <div class="stat-value" id="statActive">0</div>
+          <div class="stat-label">ใช้งานอยู่</div>
+        </div>
+        <div class="stat-card stat-suspended">
+          <div class="stat-value" id="statSuspended">0</div>
+          <div class="stat-label">ระงับ</div>
+        </div>
+        <div class="stat-card stat-expired">
+          <div class="stat-value" id="statExpired">0</div>
+          <div class="stat-label">หมดอายุ</div>
+        </div>
+        <div class="stat-card stat-rejected">
+          <div class="stat-value" id="statRejected">0</div>
+          <div class="stat-label">ไม่อนุมัติ</div>
+        </div>
+      </div>
+
       <!-- ADD HONORARY MEMBER PANEL -->
       <div id="honoraryPanel" class="panel hidden" style="margin-bottom:24px">
         <h3 style="margin-bottom:4px">เพิ่มสมาชิกกิตติมศักดิ์</h3>
@@ -142,6 +170,19 @@
 
   </div>
 </section>
+
+<!-- DETAIL MODAL -->
+<div id="detailModal" class="modal-backdrop hidden">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 style="margin:0">รายละเอียดใบสมัคร</h3>
+      <button type="button" class="modal-close" id="modalCloseBtn" aria-label="ปิด">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- เติมด้วย JS -->
+    </div>
+  </div>
+</div>
 
 <footer class="site-footer">
   <div class="wrap">
