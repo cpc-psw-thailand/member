@@ -723,7 +723,7 @@ tbody tr:nth-child(even) { background: #FBFAF6; }
   aspect-ratio: 16 / 9;
   margin: 0 auto;
   border-radius: 18px;
-  padding: 26px 28px 22px;
+  padding: 24px 26px 18px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -762,7 +762,7 @@ tbody tr:nth-child(even) { background: #FBFAF6; }
   z-index: 4;
 }
 
-/* ลายเส้นทแยงบางๆ ทั่วบัตร ให้พื้นผิวมีมิติ (เห็นได้ชัดกว่าจุดเล็กๆ) */
+/* ลายเส้นทแยงบางๆ ทั่วบัตร ให้พื้นผิวมีมิติ */
 .ecard-texture {
   position: absolute;
   inset: 0;
@@ -807,8 +807,8 @@ tbody tr:nth-child(even) { background: #FBFAF6; }
 /* ลายจุดตกแต่งมุมขวาบน */
 .ecard-dots {
   position: absolute;
-  top: 22px;
-  right: 60px;
+  top: 20px;
+  right: 56px;
   width: 90px;
   height: 54px;
   background-image: radial-gradient(rgba(255,255,255,.55) 1.4px, transparent 1.8px);
@@ -839,15 +839,39 @@ tbody tr:nth-child(even) { background: #FBFAF6; }
 /* ตราสัญลักษณ์เป็นลายน้ำขนาดใหญ่มุมขวาล่าง */
 .ecard-watermark {
   position: absolute;
-  width: 260px;
-  height: 260px;
+  width: 240px;
+  height: 240px;
   right: -55px;
-  bottom: -60px;
-  opacity: .16;
+  bottom: -55px;
+  opacity: .14;
   filter: brightness(0) invert(1);
   transform: rotate(-8deg);
   pointer-events: none;
   z-index: 1;
+}
+
+/* ไอคอนเส้นบาง ๆ ที่หยิบยืมสัญลักษณ์จากตราชมรม (ตราชั่ง / ต้นอ่อน) มาเป็นลายพื้นหลัง */
+.ecard-icon {
+  position: absolute;
+  color: rgba(255,255,255,.14);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ecard-icon.icon-scale {
+  width: 128px;
+  height: 128px;
+  right: 86px;
+  top: 38%;
+  transform: translateY(-50%);
+}
+
+.ecard-icon.icon-sprout {
+  width: 64px;
+  height: 64px;
+  left: -12px;
+  bottom: -12px;
+  color: rgba(255,255,255,.16);
 }
 
 .ecard-row {
@@ -858,32 +882,38 @@ tbody tr:nth-child(even) { background: #FBFAF6; }
 .ecard-top {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding-bottom: 16px;
+  gap: 13px;
+  padding-bottom: 14px;
   border-bottom: 1px solid rgba(255,255,255,.18);
 }
 
 .ecard-logo {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: #fff;
   flex: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+
+.ecard-org-text {
+  padding-left: 13px;
+  border-left: 1px solid rgba(255,255,255,.22);
 }
 
 .ecard-org-th {
   font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: .05em;
-  font-size: .88rem;
+  letter-spacing: .06em;
+  font-size: .86rem;
   color: #fff;
 }
 
 .ecard-org-sub {
-  font-size: .66rem;
+  font-size: .64rem;
   color: var(--gold-soft);
-  line-height: 1.4;
-  margin-top: 1px;
+  line-height: 1.45;
+  margin-top: 2px;
 }
 
 .ecard-body {
@@ -891,24 +921,26 @@ tbody tr:nth-child(even) { background: #FBFAF6; }
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 10px;
-  padding: 6px 0;
+  gap: 9px;
+  padding: 4px 0;
 }
 
 .ecard-name {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.36rem;
   font-weight: 700;
   color: #fff;
   line-height: 1.3;
+  letter-spacing: .01em;
 }
 
 .ecard-type {
   display: inline-block;
   align-self: flex-start;
   width: fit-content;
-  font-size: .72rem;
+  font-size: .7rem;
   font-weight: 600;
+  letter-spacing: .02em;
   color: var(--navy-deep);
   background: var(--gold-soft);
   padding: 4px 14px;
@@ -920,19 +952,19 @@ tbody tr:nth-child(even) { background: #FBFAF6; }
   justify-content: space-between;
   align-items: flex-end;
   gap: 16px;
-  padding-top: 16px;
+  padding-top: 14px;
   border-top: 1px solid rgba(255,255,255,.18);
 }
 
 .ecard-label {
-  font-size: .64rem;
+  font-size: .62rem;
   color: rgba(255,255,255,.65);
   text-transform: uppercase;
   letter-spacing: .05em;
 }
 
 .ecard-value {
-  font-size: 1rem;
+  font-size: .96rem;
   font-weight: 700;
   color: #fff;
   margin-top: 3px;
@@ -940,6 +972,14 @@ tbody tr:nth-child(even) { background: #FBFAF6; }
 }
 
 .ecard-meta-item:last-child { text-align: right; }
+
+.ecard-tagline {
+  padding-top: 8px;
+  font-size: .58rem;
+  line-height: 1.5;
+  color: rgba(255,255,255,.6);
+  letter-spacing: .01em;
+}
 
 /* ---------- footer ---------- */
 .site-footer {
