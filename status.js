@@ -42,6 +42,15 @@ document.addEventListener("DOMContentLoaded", () => {
     plainResultWrap.classList.toggle("hidden", isActive);
 
     if (isActive) {
+      const cardEl = document.getElementById("memberEcard");
+      cardEl.classList.remove("theme-samanya", "theme-wisamanya", "theme-honorary");
+      if (r.memberType === "สมาชิกวิสามัญ") {
+        cardEl.classList.add("theme-wisamanya");
+      } else if (r.memberType === "สมาชิกกิตติมศักดิ์") {
+        cardEl.classList.add("theme-honorary");
+      } else {
+        cardEl.classList.add("theme-samanya");
+      }
       document.getElementById("ecName").textContent = r.fullName;
       document.getElementById("ecType").textContent = r.memberType;
       document.getElementById("ecMemberID").textContent = r.memberID || "—";
