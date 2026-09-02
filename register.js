@@ -120,6 +120,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   memberTypeRadios.forEach((r) => r.addEventListener("change", syncCpcDutySection));
   syncCpcDutySection();
 
+  // ---- วิชาชีพ: บังคับแนบใบปริญญา/หนังสือรับรองวุฒิ เฉพาะนักจิตวิทยา ----
+  const professionSelect = document.getElementById("profession");
+  const degreeDocField = document.getElementById("degreeDocField");
+  const degreeDoc = document.getElementById("degreeDoc");
+
+  function syncDegreeDocField() {
+    const isPsychologist = professionSelect.value === "นักจิตวิทยา";
+    degreeDocField.classList.toggle("hidden", !isPsychologist);
+    degreeDoc.required = isPsychologist;
+    if (!isPsychologist) degreeDoc.value = "";
+  }
+  professionSelect.addEventListener("change", syncDegreeDocField);
+  syncDegreeDocField();
+
   // ---- Submit ----
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -166,6 +180,24 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
+    const isPsychologist = professionSelect.value === "นักจิตวิทยา";
+    let degreeDocBase64 = "";
+    let degreeDocName = "";
+    if (isPsychologist && degreeDoc.files[0]) {
+      const file = degreeDoc.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        showAlert(alertBox, "error", "ไฟล์ใบปริญญา/หนังสือรับรองวุฒิ ต้องมีขนาดไม่เกิน 5 MB");
+        return;
+      }
+      try {
+        degreeDocBase64 = await fileToBase64(file);
+        degreeDocName = file.name;
+      } catch (err) {
+        showAlert(alertBox, "error", "อ่านไฟล์เอกสารไม่สำเร็จ กรุณาลองใหม่");
+        return;
+      }
+    }
+
     const data = {
       title: titleValue,
       firstName: document.getElementById("firstName").value.trim(),
@@ -183,13 +215,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       licenseNo: document.getElementById("licenseNo").value.trim(),
       organization: document.getElementById("organization").value.trim(),
       education: document.getElementById("education").value.trim(),
-      experienceYears: document.getElementById("experienceYears").value,
       memberType: form.querySelector('input[name="memberType"]:checked').value,
       cpcRole: isSamanya ? cpcRole.value : "",
       cpcRegNo: isSamanya ? cpcRegNo.value.trim() : "",
       cpcExperienceYears: isSamanya ? cpcExperienceYears.value : "",
       cpcCardPhotoBase64: cpcCardPhotoBase64,
       cpcCardPhotoName: cpcCardPhotoName,
+      degreeDocBase64: degreeDocBase64,
+      degreeDocName: degreeDocName,
       consent: document.getElementById("consent").checked,
     };
 
@@ -200,6 +233,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         form.reset();
         syncTitleOther();
         syncCpcDutySection();
+        syncDegreeDocField();
         resetSelect(districtSelect, "— เลือกจังหวัดก่อน —");
         resetSelect(subdistrictSelect, "— เลือกอำเภอก่อน —");
         districtSelect.disabled = true;
