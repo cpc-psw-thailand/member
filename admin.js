@@ -240,8 +240,16 @@ document.addEventListener("DOMContentLoaded", () => {
           ${detailItem("เลขที่ใบประกอบโรคศิลปะ", m.licenseNo)}
           ${detailItem("หน่วยงานต้นสังกัด", m.organization)}
           ${detailItem("วุฒิการศึกษา", m.education)}
-          ${detailItem("ประสบการณ์ทำงาน (ปี)", m.experienceYears)}
         </div>
+        ${m.degreeDocURL ? `
+          <div style="margin-top:12px">
+            <div class="dt-label" style="margin-bottom:6px">ใบปริญญา/หนังสือรับรองวุฒิการศึกษา</div>
+            <img class="detail-photo" src="${escapeHtml(drivePhotoSrc(m.degreeDocURL))}" alt="เอกสารรับรองวุฒิการศึกษา" loading="lazy" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('p'),{className:'muted',textContent:'ไม่สามารถแสดงตัวอย่างเอกสารได้ (อาจเป็นไฟล์ PDF) กรุณากดลิงก์ด้านล่างเพื่อเปิดดู'}))">
+            <div style="margin-top:6px">
+              <a href="${escapeHtml(drivePhotoLink(m.degreeDocURL))}" target="_blank" rel="noopener">เปิดเอกสารในแท็บใหม่</a>
+            </div>
+          </div>
+        ` : ""}
       </div>
     `;
 
