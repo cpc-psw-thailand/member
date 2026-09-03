@@ -75,6 +75,10 @@
           <div class="stat-value" id="statPending">0</div>
           <div class="stat-label">รอตรวจสอบ</div>
         </div>
+        <div class="stat-card stat-needinfo">
+          <div class="stat-value" id="statNeedInfo">0</div>
+          <div class="stat-label">รอข้อมูลเพิ่มเติม</div>
+        </div>
         <div class="stat-card stat-active">
           <div class="stat-value" id="statActive">0</div>
           <div class="stat-label">ใช้งานอยู่</div>
@@ -139,6 +143,7 @@
         <select id="filterStatus">
           <option value="">ทุกสถานะ</option>
           <option value="รอตรวจสอบ">รอตรวจสอบ</option>
+          <option value="รอข้อมูลเพิ่มเติม">รอข้อมูลเพิ่มเติม</option>
           <option value="ใช้งานอยู่">ใช้งานอยู่</option>
           <option value="ไม่อนุมัติ">ไม่อนุมัติ</option>
           <option value="ระงับ">ระงับ</option>
@@ -194,7 +199,7 @@
     <div class="modal-body">
       <p id="confirmMessage" style="margin:0 0 16px"></p>
       <div id="confirmReasonWrap" class="field hidden">
-        <label for="confirmReasonInput">เหตุผล (ถ้ามี)</label>
+        <label for="confirmReasonInput" id="confirmReasonLabel">เหตุผล (ถ้ามี)</label>
         <textarea id="confirmReasonInput"></textarea>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">

@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---- โมดัลรายละเอียด ----
   // ---- โมดัลยืนยัน (แทน confirm()/prompt() ของเบราว์เซอร์) ----
-  function showConfirm({ title, message, withReason = false, confirmLabel = "ยืนยัน", danger = false }) {
+  function showConfirm({ title, message, withReason = false, requireReason = false, reasonLabel = "เหตุผล (ถ้ามี)", confirmLabel = "ยืนยัน", danger = false }) {
     return new Promise((resolve) => {
       const modal = document.getElementById("confirmModal");
       const okBtn = document.getElementById("confirmOkBtn");
@@ -122,10 +122,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const closeBtn = document.getElementById("confirmCloseBtn");
       const reasonWrap = document.getElementById("confirmReasonWrap");
       const reasonInput = document.getElementById("confirmReasonInput");
+      const reasonLabelEl = document.getElementById("confirmReasonLabel");
 
       document.getElementById("confirmTitle").textContent = title;
       document.getElementById("confirmMessage").textContent = message;
       reasonWrap.classList.toggle("hidden", !withReason);
+      if (reasonLabelEl) reasonLabelEl.textContent = reasonLabel;
       reasonInput.value = "";
       okBtn.textContent = confirmLabel;
       okBtn.className = "btn " + (danger ? "btn-danger" : "btn-primary");
@@ -140,6 +142,11 @@ document.addEventListener("DOMContentLoaded", () => {
         resolve(result);
       }
       function onOk() {
+        if (withReason && requireReason && !reasonInput.value.trim()) {
+          reasonInput.focus();
+          reasonInput.style.borderColor = "var(--red)";
+          return;
+        }
         cleanup(withReason ? { confirmed: true, reason: reasonInput.value.trim() } : { confirmed: true });
       }
       function onCancel() {
@@ -275,11 +282,32 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
     }
 
+    if (m.infoRequestMessage) {
+      html += `
+        <div class="detail-section">
+          <h4>คำขอเอกสาร/ข้อมูลเพิ่มเติมจากเจ้าหน้าที่</h4>
+          <div class="detail-grid">
+            ${detailItem("วันที่ขอ", m.infoRequestDate)}
+          </div>
+          <p style="margin:10px 0 0;white-space:pre-wrap">${escapeHtml(m.infoRequestMessage)}</p>
+          ${m.additionalDocURL ? `
+            <div style="margin-top:12px">
+              <div class="dt-label" style="margin-bottom:6px">เอกสารเพิ่มเติมที่ผู้สมัครแนบกลับมา</div>
+              <img class="detail-photo" src="${escapeHtml(drivePhotoSrc(m.additionalDocURL))}" alt="เอกสารเพิ่มเติม" loading="lazy" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('p'),{className:'muted',textContent:'ไม่สามารถแสดงตัวอย่างเอกสารได้ (อาจเป็นไฟล์ PDF) กรุณากดลิงก์ด้านล่างเพื่อเปิดดู'}))">
+              <div style="margin-top:6px">
+                <a href="${escapeHtml(drivePhotoLink(m.additionalDocURL))}" target="_blank" rel="noopener">เปิดเอกสารในแท็บใหม่</a>
+              </div>
+            </div>
+          ` : `<p class="muted" style="margin:10px 0 0;font-size:.85rem">ผู้สมัครยังไม่ได้ส่งข้อมูลกลับมา</p>`}
+        </div>
+      `;
+    }
+
     if (m.note) {
       html += `
         <div class="detail-section">
           <h4>หมายเหตุ</h4>
-          <p style="margin:0">${escapeHtml(m.note)}</p>
+          <p style="margin:0;white-space:pre-wrap">${escapeHtml(m.note)}</p>
         </div>
       `;
     }
@@ -311,10 +339,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderStats() {
     const counts = {
       total: currentList.length,
-      pending: 0, active: 0, suspended: 0, expired: 0, rejected: 0,
+      pending: 0, needInfo: 0, active: 0, suspended: 0, expired: 0, rejected: 0,
     };
     currentList.forEach((m) => {
       if (m.status === "รอตรวจสอบ") counts.pending++;
+      else if (m.status === "รอข้อมูลเพิ่มเติม") counts.needInfo++;
       else if (m.status === "ใช้งานอยู่") counts.active++;
       else if (m.status === "ระงับ") counts.suspended++;
       else if (m.status === "หมดอายุ") counts.expired++;
@@ -322,6 +351,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     document.getElementById("statTotal").textContent = counts.total;
     document.getElementById("statPending").textContent = counts.pending;
+    document.getElementById("statNeedInfo").textContent = counts.needInfo;
     document.getElementById("statActive").textContent = counts.active;
     document.getElementById("statSuspended").textContent = counts.suspended;
     document.getElementById("statExpired").textContent = counts.expired;
@@ -392,8 +422,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (m.status === "รอตรวจสอบ") {
       return `
         <button class="btn btn-gold btn-sm" data-action="approve">อนุมัติ</button>
+        <button class="btn btn-outline btn-sm" data-action="requestInfo">ขอเอกสารเพิ่มเติม</button>
         <button class="btn btn-danger btn-sm" data-action="reject">ไม่อนุมัติ</button>
       `;
+    }
+    if (m.status === "รอข้อมูลเพิ่มเติม") {
+      return `<span class="muted" style="font-size:.82rem">รอผู้สมัครส่งข้อมูลกลับ</span>`;
     }
     if (m.status === "ใช้งานอยู่") {
       return `<button class="btn btn-outline btn-sm" data-action="suspend">ระงับ</button>`;
@@ -429,6 +463,18 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!confirmed) return;
       const res = await callApi("adminReject", { password, row, reason });
       finishAction(res, res.ok ? "บันทึกผลไม่อนุมัติแล้ว" : null);
+    } else if (action === "requestInfo") {
+      const { confirmed, reason } = await showConfirm({
+        title: "ขอเอกสาร/ข้อมูลเพิ่มเติม",
+        message: "พิมพ์ข้อความแจ้งผู้สมัครว่าต้องการเอกสารหรือข้อมูลอะไรเพิ่มเติม (ระบบจะส่งอีเมลแจ้งพร้อมลิงก์ให้แก้ไข/แนบไฟล์)",
+        withReason: true,
+        requireReason: true,
+        reasonLabel: "ข้อความถึงผู้สมัคร",
+        confirmLabel: "ส่งคำขอ",
+      });
+      if (!confirmed) return;
+      const res = await callApi("adminRequestInfo", { password, row, message: reason });
+      finishAction(res, res.ok ? "ส่งคำขอเอกสารเพิ่มเติมแล้ว" : null);
     } else if (action === "suspend") {
       const { confirmed } = await showConfirm({
         title: "ระงับสมาชิกภาพ",

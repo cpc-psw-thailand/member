@@ -139,6 +139,96 @@
           <div id="renewAlert" class="alert hidden" role="alert"></div>
           <button class="btn btn-gold" id="renewBtn">ต่ออายุสมาชิกภาพ</button>
         </div>
+
+        <!-- ขอเอกสาร/ข้อมูลเพิ่มเติม (แสดงเมื่อสถานะ "รอข้อมูลเพิ่มเติม") -->
+        <div id="additionalInfoWrap" class="hidden" style="margin-top:16px">
+          <div class="alert alert-info">
+            <strong>เจ้าหน้าที่ขอเอกสาร/ข้อมูลเพิ่มเติมจากท่าน:</strong>
+            <p id="infoRequestMessageText" style="margin:8px 0 0;white-space:pre-wrap"></p>
+          </div>
+
+          <div class="panel" style="margin-top:14px">
+            <h3 style="margin-bottom:4px">ข้อมูลปัจจุบันของท่าน</h3>
+            <p class="muted" style="margin-bottom:14px">อ้างอิงเท่านั้น — แก้ไขได้ในแบบฟอร์มด้านล่าง</p>
+            <div class="detail-grid" id="currentInfoGrid" style="margin-bottom:4px"></div>
+          </div>
+
+          <div class="panel" style="margin-top:14px">
+            <h3 style="margin-bottom:4px">แก้ไขข้อมูล / แนบเอกสารเพิ่มเติม</h3>
+            <p class="muted" style="margin-bottom:16px">กรอกเฉพาะช่องที่ต้องการแก้ไขหรืออัปเดต ช่องที่เว้นว่างไว้จะไม่ถูกเปลี่ยนแปลง</p>
+            <form id="additionalInfoForm" novalidate>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="aiPhone">เบอร์โทรศัพท์</label>
+                  <input type="tel" id="aiPhone">
+                </div>
+                <div class="field">
+                  <label for="aiEmail">อีเมล</label>
+                  <input type="email" id="aiEmail">
+                </div>
+                <div class="field full">
+                  <label for="aiAddress">ที่อยู่ปัจจุบัน (บ้านเลขที่/หมู่/ถนน)</label>
+                  <textarea id="aiAddress"></textarea>
+                </div>
+                <div class="field">
+                  <label for="aiProvince">จังหวัด</label>
+                  <select id="aiProvince">
+                    <option value="">— ไม่เปลี่ยนแปลง —</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="aiDistrict">อำเภอ / เขต</label>
+                  <select id="aiDistrict" disabled>
+                    <option value="">— เลือกจังหวัดก่อน —</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="aiSubdistrict">ตำบล / แขวง</label>
+                  <select id="aiSubdistrict" disabled>
+                    <option value="">— เลือกอำเภอก่อน —</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="aiZipcode">รหัสไปรษณีย์</label>
+                  <input type="text" id="aiZipcode" readonly placeholder="เลือกที่อยู่เพื่อแสดงอัตโนมัติ">
+                </div>
+                <div class="field">
+                  <label for="aiLicenseNo">เลขที่ใบประกอบโรคศิลปะ</label>
+                  <input type="text" id="aiLicenseNo">
+                </div>
+                <div class="field">
+                  <label for="aiOrganization">หน่วยงานต้นสังกัด</label>
+                  <input type="text" id="aiOrganization">
+                </div>
+                <div class="field">
+                  <label for="aiEducation">วุฒิการศึกษา</label>
+                  <input type="text" id="aiEducation">
+                </div>
+                <div class="field">
+                  <label for="aiCpcRegNo">เลขที่ทะเบียนผู้ทำหน้าที่ ป.วิ.อาญา</label>
+                  <input type="text" id="aiCpcRegNo">
+                </div>
+                <div class="field">
+                  <label for="aiCpcExperienceYears">ประสบการณ์ทำหน้าที่ ป.วิ.อาญา (ปี)</label>
+                  <input type="number" id="aiCpcExperienceYears" min="0">
+                </div>
+              </div>
+
+              <div class="field full">
+                <label for="aiDoc">แนบเอกสารเพิ่มเติมตามที่เจ้าหน้าที่ร้องขอ<span class="req">*</span></label>
+                <input type="file" id="aiDoc" accept="image/*,application/pdf" required>
+                <div class="hint">ไฟล์ภาพหรือ PDF ขนาดไม่เกิน 5 MB</div>
+              </div>
+              <div class="field full">
+                <label for="aiNote">ข้อความถึงเจ้าหน้าที่ (ถ้ามี)</label>
+                <textarea id="aiNote" placeholder="อธิบายเอกสาร/ข้อมูลที่แนบมา"></textarea>
+              </div>
+
+              <div id="additionalInfoAlert" class="alert hidden" role="alert"></div>
+              <button type="submit" class="btn btn-primary" id="additionalInfoBtn">ส่งข้อมูลเพิ่มเติม</button>
+            </form>
+          </div>
+        </div>
       </div>
 
     </div>

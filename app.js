@@ -47,6 +47,7 @@ function statusBadgeClass(status) {
     case "ไม่อนุมัติ": return "badge-rejected";
     case "ระงับ": return "badge-suspended";
     case "หมดอายุ": return "badge-expired";
+    case "รอข้อมูลเพิ่มเติม": return "badge-needinfo";
     default: return "badge-pending";
   }
 }

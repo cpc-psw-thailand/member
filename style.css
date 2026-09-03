@@ -498,6 +498,7 @@ select:disabled {
 .badge-rejected { background: #F4DEDA; color: var(--red); }
 .badge-suspended { background: #E6E1F3; color: #5B4A96; }
 .badge-expired { background: #E7E7E7; color: #66686E; }
+.badge-needinfo { background: #FCE4D6; color: #B8622F; }
 
 /* ---------- messages ---------- */
 .alert {
@@ -584,13 +585,9 @@ tbody tr:nth-child(even) { background: #FBFAF6; }
 /* ---------- admin dashboard stats ---------- */
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 12px;
   margin-bottom: 24px;
-}
-
-@media (max-width: 900px) {
-  .stat-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 520px) {
@@ -607,6 +604,7 @@ tbody tr:nth-child(even) { background: #FBFAF6; }
 }
 
 .stat-card.stat-pending { border-top-color: var(--gold); }
+.stat-card.stat-needinfo { border-top-color: #B8622F; }
 .stat-card.stat-active { border-top-color: var(--teal); }
 .stat-card.stat-suspended { border-top-color: var(--purple); }
 .stat-card.stat-expired { border-top-color: #9A9689; }
