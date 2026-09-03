@@ -326,6 +326,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (res.ok) {
         currentList = res.list.reverse(); // ล่าสุดขึ้นก่อน
         renderStats();
+        renderProfessionStats();
         renderTable();
       } else {
         showAlert(dashAlert, "error", res.error || "โหลดข้อมูลไม่สำเร็จ");
@@ -356,6 +357,30 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("statSuspended").textContent = counts.suspended;
     document.getElementById("statExpired").textContent = counts.expired;
     document.getElementById("statRejected").textContent = counts.rejected;
+  }
+
+  function renderProfessionStats() {
+    const counts = { social: 0, psych: 0, other: 0 };
+    currentList.forEach((m) => {
+      if (m.profession === "นักสังคมสงเคราะห์") counts.social++;
+      else if (m.profession === "นักจิตวิทยา") counts.psych++;
+      else counts.other++;
+    });
+    const total = counts.social + counts.psych + counts.other;
+    const pct = (n) => (total ? Math.round((n / total) * 100) : 0);
+
+    document.getElementById("professionSocialCount").textContent = counts.social;
+    document.getElementById("professionPsychCount").textContent = counts.psych;
+    document.getElementById("professionOtherCount").textContent = counts.other;
+    document.getElementById("professionSocialPct").textContent = pct(counts.social) + "%";
+    document.getElementById("professionPsychPct").textContent = pct(counts.psych) + "%";
+    document.getElementById("professionOtherPct").textContent = pct(counts.other) + "%";
+
+    document.getElementById("professionBarSocial").style.width = pct(counts.social) + "%";
+    document.getElementById("professionBarPsych").style.width = pct(counts.psych) + "%";
+    document.getElementById("professionBarOther").style.width = pct(counts.other) + "%";
+
+    document.getElementById("professionOtherItem").classList.toggle("hidden", counts.other === 0);
   }
 
   function renderTable() {

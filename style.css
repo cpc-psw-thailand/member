@@ -610,6 +610,51 @@ tbody tr:nth-child(even) { background: #FBFAF6; }
 .stat-card.stat-expired { border-top-color: #9A9689; }
 .stat-card.stat-rejected { border-top-color: var(--red); }
 
+/* ---------- profession ratio bar ---------- */
+.profession-bar {
+  display: flex;
+  height: 14px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--line);
+  margin-bottom: 16px;
+}
+
+.profession-bar-seg {
+  height: 100%;
+  transition: width .3s ease;
+}
+
+.seg-social { background: var(--teal); }
+.seg-psych { background: var(--purple); }
+.seg-other { background: var(--gold); }
+
+.profession-legend {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  font-size: .88rem;
+  color: var(--ink);
+}
+
+.profession-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profession-legend .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex: none;
+}
+
+.dot-social { background: var(--teal); }
+.dot-psych { background: var(--purple); }
+.dot-other { background: var(--gold); }
+
 .stat-value {
   font-family: var(--font-display);
   font-size: 1.6rem;
