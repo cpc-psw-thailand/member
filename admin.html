@@ -56,8 +56,6 @@
           <p class="muted" style="margin:0">ตรวจสอบ อนุมัติ และจัดการสถานะสมาชิกภาพ</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-gold btn-sm" id="addHonoraryBtn">+ เพิ่มสมาชิกกิตติมศักดิ์</button>
-          <button class="btn btn-outline btn-sm" id="addNewsletterBtn">+ ส่งข่าวสารถึงสมาชิก</button>
           <button class="btn btn-outline btn-sm" id="refreshBtn">โหลดข้อมูลใหม่</button>
           <button class="btn btn-outline btn-sm" id="logoutBtn">ออกจากระบบ</button>
         </div>
@@ -215,7 +213,12 @@
                 <select id="nlAudience">
                   <option value="active">เฉพาะสมาชิกที่ใช้งานอยู่</option>
                   <option value="all">สมาชิกทุกคน (ทุกสถานะที่มีอีเมล)</option>
+                  <option value="custom">ระบุอีเมลเอง</option>
                 </select>
+              </div>
+              <div class="field full hidden" id="nlCustomEmailsField">
+                <label for="nlCustomEmails">รายชื่ออีเมล (คั่นด้วยจุลภาค , หรือขึ้นบรรทัดใหม่)</label>
+                <textarea id="nlCustomEmails" placeholder="เช่น somchai@example.com, malee@example.com"></textarea>
               </div>
               <div class="field full">
                 <label for="nlSubject">หัวข้ออีเมล<span class="req">*</span></label>
@@ -224,6 +227,11 @@
               <div class="field full">
                 <label for="nlMessage">เนื้อหาข่าวสาร<span class="req">*</span></label>
                 <textarea id="nlMessage" required style="min-height:140px"></textarea>
+              </div>
+              <div class="field full">
+                <label for="nlImages">แนบรูปภาพประกอบ (ถ้ามี สูงสุด 3 รูป)</label>
+                <input type="file" id="nlImages" accept="image/*" multiple>
+                <div class="hint">รูปจะแสดงต่อท้ายเนื้อหาข่าวสารในอีเมล ไฟล์ละไม่เกิน 3 MB</div>
               </div>
             </div>
             <div style="display:flex;gap:10px">

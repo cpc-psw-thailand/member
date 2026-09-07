@@ -158,7 +158,24 @@ document.addEventListener("DOMContentLoaded", () => {
   newsletterCancelBtn.addEventListener("click", () => {
     newsletterForm.reset();
     newsletterPanel.classList.add("hidden");
+    document.getElementById("nlCustomEmailsField").classList.add("hidden");
   });
+
+  // แสดง/ซ่อนช่องกรอกอีเมลเอง ตามตัวเลือก "ส่งถึง"
+  const nlAudienceSelect = document.getElementById("nlAudience");
+  const nlCustomEmailsField = document.getElementById("nlCustomEmailsField");
+  nlAudienceSelect.addEventListener("change", () => {
+    nlCustomEmailsField.classList.toggle("hidden", nlAudienceSelect.value !== "custom");
+  });
+
+  function fileToBase64Admin(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
 
   newsletterForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -170,6 +187,28 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const audience = nlAudienceSelect.value;
+    let customEmails = [];
+    if (audience === "custom") {
+      customEmails = document.getElementById("nlCustomEmails").value
+        .split(/[,\n;]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (customEmails.length === 0) {
+        showAlert(dashAlert, "error", "กรุณาระบุอีเมลอย่างน้อย 1 รายการ");
+        return;
+      }
+    }
+
+    const imageInput = document.getElementById("nlImages");
+    const files = Array.from(imageInput.files || []).slice(0, 3);
+    for (const f of files) {
+      if (f.size > 3 * 1024 * 1024) {
+        showAlert(dashAlert, "error", `ไฟล์ "${f.name}" มีขนาดเกิน 3 MB`);
+        return;
+      }
+    }
+
     const { confirmed } = await showConfirm({
       title: "ยืนยันการส่งข่าวสาร",
       message: "ยืนยันการส่งอีเมลข่าวสารนี้ถึงสมาชิกตามกลุ่มเป้าหมายที่เลือก?",
@@ -177,14 +216,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     if (!confirmed) return;
 
-    const data = {
-      audience: document.getElementById("nlAudience").value,
-      subject: document.getElementById("nlSubject").value.trim(),
-      message: document.getElementById("nlMessage").value.trim(),
-    };
-
     setLoading(newsletterBtn, true);
     try {
+      const images = [];
+      for (const f of files) {
+        const base64 = await fileToBase64Admin(f);
+        images.push({ base64, name: f.name });
+      }
+
+      const data = {
+        audience: audience,
+        customEmails: customEmails,
+        subject: document.getElementById("nlSubject").value.trim(),
+        message: document.getElementById("nlMessage").value.trim(),
+        images: images,
+      };
+
       const res = await callApi("adminSendNewsletter", { password: getPassword(), ...data });
       if (res.ok) {
         const skipNote = res.skipped > 0
@@ -193,6 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showAlert(dashAlert, "success", `ส่งอีเมลสำเร็จ ${res.sent} จาก ${res.totalRecipients} ฉบับ${skipNote}`);
         newsletterForm.reset();
         newsletterPanel.classList.add("hidden");
+        nlCustomEmailsField.classList.add("hidden");
       } else {
         showAlert(dashAlert, "error", res.error || "ส่งอีเมลไม่สำเร็จ");
       }
