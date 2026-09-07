@@ -655,6 +655,43 @@ tbody tr:nth-child(even) { background: #FBFAF6; }
 .dot-psych { background: var(--purple); }
 .dot-other { background: var(--gold); }
 
+.seg-samanya { background: var(--navy); }
+.seg-wisamanya { background: var(--teal); }
+.seg-honorary { background: var(--purple); }
+.dot-samanya { background: var(--navy); }
+.dot-wisamanya { background: var(--teal); }
+.dot-honorary { background: var(--purple); }
+
+/* ---------- admin tabs ---------- */
+.admin-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  margin: 24px 0 20px;
+}
+
+.admin-tab {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 10px 18px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: .92rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease;
+}
+
+.admin-tab:hover { color: var(--navy); }
+
+.admin-tab.active {
+  color: var(--navy);
+  border-bottom-color: var(--gold);
+}
+
+.admin-tab-panel.hidden { display: none; }
+
 .stat-value {
   font-family: var(--font-display);
   font-size: 1.6rem;

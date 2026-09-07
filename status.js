@@ -22,12 +22,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const renewAlert = document.getElementById("renewAlert");
   const saveCardBtn = document.getElementById("saveCardBtn");
 
-  const additionalInfoWrap = document.getElementById("additionalInfoWrap");
+  const upgradeWrap = document.getElementById("upgradeWrap");
+  const upgradeForm = document.getElementById("upgradeForm");
+  const upgradeAlert = document.getElementById("upgradeAlert");
+  const upgradeBtn = document.getElementById("upgradeBtn");
+
+  const infoRequestBanner = document.getElementById("infoRequestBanner");
   const infoRequestMessageText = document.getElementById("infoRequestMessageText");
-  const currentInfoGrid = document.getElementById("currentInfoGrid");
   const additionalInfoForm = document.getElementById("additionalInfoForm");
   const additionalInfoAlert = document.getElementById("additionalInfoAlert");
   const additionalInfoBtn = document.getElementById("additionalInfoBtn");
+  const aiCpcFieldset = document.getElementById("aiCpcFieldset");
+  const aiDoc = document.getElementById("aiDoc");
+  const aiDocLabel = document.getElementById("aiDocLabel");
 
   function resetSelect(select, placeholder) {
     select.innerHTML = "";
@@ -48,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await callApi("checkStatus", { nationalID, phone });
       if (res.ok) {
         lastResult = { ...res.result, nationalID, phone };
-        renderResult(lastResult);
+        await renderResult(lastResult);
         resultWrap.classList.remove("hidden");
       } else {
         showAlert(alertBox, "error", res.error || "ไม่พบข้อมูล");
@@ -60,16 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function detailItemHtml(label, value) {
-    return `
-      <div class="detail-item">
-        <div class="dt-label">${label}</div>
-        <div class="dt-value">${value || "—"}</div>
-      </div>
-    `;
-  }
-
-  function renderResult(r) {
+  async function renderResult(r) {
     const isActive = r.status === "ใช้งานอยู่";
     const isExpired = r.status === "หมดอายุ";
     const needsInfo = r.status === "รอข้อมูลเพิ่มเติม";
@@ -91,46 +89,105 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("ecType").textContent = r.memberType;
       document.getElementById("ecMemberID").textContent = r.memberID || "—";
       document.getElementById("ecExpire").textContent = r.expireDate || "—";
-      return;
+
+      const isWisamanya = r.memberType === "สมาชิกวิสามัญ";
+      upgradeWrap.classList.toggle("hidden", !isWisamanya);
+      if (isWisamanya) {
+        upgradeForm.reset();
+        hideAlert(upgradeAlert);
+        upgradeBtn.disabled = false;
+      }
+    } else {
+      document.getElementById("rcMemberID").textContent = r.memberID || "ยังไม่ออกรหัส";
+      const statusEl = document.getElementById("rcStatus");
+      statusEl.textContent = r.status;
+      statusEl.className = "badge " + statusBadgeClass(r.status);
+      document.getElementById("rcName").textContent = r.fullName;
+      document.getElementById("rcType").textContent = r.memberType;
+      document.getElementById("rcApply").textContent = r.applyDate || "—";
+      document.getElementById("rcApprove").textContent = r.approveDate || "—";
+      document.getElementById("rcExpire").textContent = r.expireDate || "—";
+      document.getElementById("rcNote").textContent = r.note || "—";
+      renewWrap.classList.toggle("hidden", !isExpired);
     }
 
-    document.getElementById("rcMemberID").textContent = r.memberID || "ยังไม่ออกรหัส";
-    const statusEl = document.getElementById("rcStatus");
-    statusEl.textContent = r.status;
-    statusEl.className = "badge " + statusBadgeClass(r.status);
-    document.getElementById("rcName").textContent = r.fullName;
-    document.getElementById("rcType").textContent = r.memberType;
-    document.getElementById("rcApply").textContent = r.applyDate || "—";
-    document.getElementById("rcApprove").textContent = r.approveDate || "—";
-    document.getElementById("rcExpire").textContent = r.expireDate || "—";
-    document.getElementById("rcNote").textContent = r.note || "—";
-
-    renewWrap.classList.toggle("hidden", !isExpired);
-    additionalInfoWrap.classList.toggle("hidden", !needsInfo);
-
+    // ---- ส่วนแก้ไขข้อมูลสมาชิก: แสดงเสมอไม่ว่าสถานะใด ----
+    infoRequestBanner.classList.toggle("hidden", !needsInfo);
     if (needsInfo) {
       infoRequestMessageText.textContent = r.infoRequestMessage || "";
-      currentInfoGrid.innerHTML = [
-        detailItemHtml("เบอร์โทรศัพท์", r.phone),
-        detailItemHtml("อีเมล", r.email),
-        detailItemHtml("ที่อยู่", r.address),
-        detailItemHtml("ตำบล/แขวง", r.subdistrict),
-        detailItemHtml("อำเภอ/เขต", r.district),
-        detailItemHtml("จังหวัด", r.province),
-        detailItemHtml("รหัสไปรษณีย์", r.zipcode),
-        detailItemHtml("วิชาชีพ", r.profession),
-        detailItemHtml("เลขที่ใบประกอบโรคศิลปะ", r.licenseNo),
-        detailItemHtml("หน่วยงานต้นสังกัด", r.organization),
-        detailItemHtml("วุฒิการศึกษา", r.education),
-        detailItemHtml("เลขที่ทะเบียน ป.วิ.อาญา", r.cpcRegNo),
-      ].join("");
-      additionalInfoForm.reset();
-      resetSelect(aiDistrict, "— เลือกจังหวัดก่อน —");
-      resetSelect(aiSubdistrict, "— เลือกอำเภอก่อน —");
-      aiDistrict.disabled = true;
-      aiSubdistrict.disabled = true;
-      document.getElementById("aiZipcode").value = "";
     }
+
+    // เอกสารแนบ: บังคับเฉพาะตอนเจ้าหน้าที่ขอเอกสารเพิ่มเติม
+    aiDoc.required = needsInfo;
+    aiDocLabel.innerHTML = needsInfo
+      ? 'แนบเอกสารเพิ่มเติมตามที่เจ้าหน้าที่ร้องขอ<span class="req">*</span>'
+      : "แนบเอกสารเพิ่มเติม (ถ้ามี)";
+
+    // แสดงข้อมูลผู้ทำหน้าที่ ป.วิ.อาญา เฉพาะสมาชิกสามัญ
+    aiCpcFieldset.classList.toggle("hidden", r.memberType !== "สมาชิกสามัญ");
+
+    await prefillEditForm(r);
+  }
+
+  async function prefillEditForm(r) {
+    additionalInfoForm.reset();
+    hideAlert(additionalInfoAlert);
+    additionalInfoBtn.disabled = false;
+
+    // คำนำหน้า
+    const titleSelect = document.getElementById("aiTitle");
+    const knownTitles = ["นาย", "นาง", "นางสาว"];
+    if (r.title && knownTitles.indexOf(r.title) !== -1) {
+      titleSelect.value = r.title;
+    } else if (r.title) {
+      titleSelect.value = "อื่น ๆ";
+      document.getElementById("aiTitleOther").value = r.title;
+    }
+    syncTitleOther();
+
+    document.getElementById("aiFirstName").value = r.firstName || "";
+    document.getElementById("aiLastName").value = r.lastName || "";
+    document.getElementById("aiBirthDate").value = r.birthDate || "";
+    document.getElementById("aiPhone").value = r.phone || "";
+    document.getElementById("aiEmail").value = r.email || "";
+    document.getElementById("aiAddress").value = r.address || "";
+    document.getElementById("aiProfession").value = r.profession || "";
+    document.getElementById("aiLicenseNo").value = r.licenseNo || "";
+    document.getElementById("aiOrganization").value = r.organization || "";
+    document.getElementById("aiEducation").value = r.education || "";
+    document.getElementById("aiCpcRegNo").value = r.cpcRegNo || "";
+    document.getElementById("aiCpcExperienceYears").value = r.cpcExperienceYears || "";
+
+    await loadAddressData();
+    resetSelect(aiDistrict, "— เลือกจังหวัดก่อน —");
+    resetSelect(aiSubdistrict, "— เลือกอำเภอก่อน —");
+    aiDistrict.disabled = true;
+    aiSubdistrict.disabled = true;
+    aiZipcode.value = "";
+    aiProvince.value = "";
+
+    if (r.province) {
+      const province = AI_ADDRESS_DATA.find((p) => p.n === r.province);
+      if (province) {
+        aiProvince.value = String(province.id);
+        populateDistrictOptions(province);
+        if (r.district) {
+          const district = province.d.find((d) => d.n === r.district);
+          if (district) {
+            aiDistrict.value = String(district.id);
+            populateSubdistrictOptions(district);
+            if (r.subdistrict) {
+              const sub = district.t.find((t) => t.n === r.subdistrict);
+              if (sub) {
+                aiSubdistrict.value = String(sub.id);
+                aiZipcode.value = sub.z || r.zipcode || "";
+              }
+            }
+          }
+        }
+      }
+    }
+    if (!aiZipcode.value) aiZipcode.value = r.zipcode || "";
   }
 
   form.addEventListener("submit", async (e) => {
@@ -169,7 +226,79 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ---- ที่อยู่แบบ cascade สำหรับฟอร์มแก้ไขข้อมูลเพิ่มเติม ----
+  // ---- คำนำหน้า "อื่น ๆ" ในฟอร์มแก้ไขข้อมูล ----
+  const aiTitleSelect = document.getElementById("aiTitle");
+  const aiTitleOtherField = document.getElementById("aiTitleOtherField");
+  const aiTitleOtherInput = document.getElementById("aiTitleOther");
+
+  function syncTitleOther() {
+    const isOther = aiTitleSelect.value === "อื่น ๆ";
+    aiTitleOtherField.classList.toggle("hidden", !isOther);
+  }
+  aiTitleSelect.addEventListener("change", syncTitleOther);
+
+  // ---- ขอเปลี่ยนประเภทเป็นสมาชิกสามัญ ----
+  upgradeForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideAlert(upgradeAlert);
+
+    if (!upgradeForm.checkValidity()) {
+      upgradeForm.reportValidity();
+      return;
+    }
+    if (!lastResult) return;
+
+    const fileInput = document.getElementById("upCardPhoto");
+    const file = fileInput.files[0];
+    if (!file) {
+      showAlert(upgradeAlert, "error", "กรุณาแนบรูปบัตรผู้ทำหน้าที่ฯ");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showAlert(upgradeAlert, "error", "ไฟล์รูปบัตรผู้ทำหน้าที่ฯ ต้องมีขนาดไม่เกิน 5 MB");
+      return;
+    }
+
+    let cpcCardPhotoBase64 = "";
+    let cpcCardPhotoName = "";
+    try {
+      cpcCardPhotoBase64 = await fileToBase64(file);
+      cpcCardPhotoName = file.name;
+    } catch (err) {
+      showAlert(upgradeAlert, "error", "อ่านไฟล์รูปภาพไม่สำเร็จ กรุณาลองใหม่");
+      return;
+    }
+
+    const data = {
+      cpcRole: document.getElementById("upRole").value,
+      cpcRegNo: document.getElementById("upRegNo").value.trim(),
+      cpcExperienceYears: document.getElementById("upExperienceYears").value,
+      cpcCardPhotoBase64: cpcCardPhotoBase64,
+      cpcCardPhotoName: cpcCardPhotoName,
+    };
+
+    setLoading(upgradeBtn, true);
+    try {
+      const res = await callApi("requestUpgrade", {
+        nationalID: lastResult.nationalID,
+        phone: lastResult.phone,
+        data,
+      });
+      if (res.ok) {
+        showAlert(upgradeAlert, "success", res.message || "ส่งคำขอเรียบร้อยแล้ว");
+        upgradeForm.reset();
+        upgradeBtn.disabled = true;
+      } else {
+        showAlert(upgradeAlert, "error", res.error || "ส่งคำขอไม่สำเร็จ");
+      }
+    } catch (err) {
+      showAlert(upgradeAlert, "error", "เชื่อมต่อระบบไม่สำเร็จ: " + err.message);
+    } finally {
+      setLoading(upgradeBtn, false, "ส่งคำขอเปลี่ยนประเภทสมาชิก");
+    }
+  });
+
+  // ---- ที่อยู่แบบ cascade สำหรับฟอร์มแก้ไขข้อมูล (รองรับการเติมค่าปัจจุบันอัตโนมัติ) ----
   const aiProvince = document.getElementById("aiProvince");
   const aiDistrict = document.getElementById("aiDistrict");
   const aiSubdistrict = document.getElementById("aiSubdistrict");
@@ -190,44 +319,47 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("โหลดข้อมูลจังหวัด/อำเภอ/ตำบลไม่สำเร็จ", err);
     }
   }
-  loadAddressData();
 
-  aiProvince.addEventListener("change", () => {
+  function populateDistrictOptions(province) {
     resetSelect(aiDistrict, "— เลือกอำเภอ/เขต —");
     resetSelect(aiSubdistrict, "— เลือกอำเภอก่อน —");
+    aiDistrict.disabled = true;
+    aiSubdistrict.disabled = true;
+    if (!province) return;
+    aiDistrict.disabled = false;
+    province.d.forEach((dist) => {
+      const opt = document.createElement("option");
+      opt.value = dist.id;
+      opt.textContent = dist.n;
+      aiDistrict.appendChild(opt);
+    });
+  }
+
+  function populateSubdistrictOptions(district) {
+    resetSelect(aiSubdistrict, "— เลือกตำบล/แขวง —");
+    aiSubdistrict.disabled = true;
+    if (!district) return;
+    aiSubdistrict.disabled = false;
+    district.t.forEach((t) => {
+      const opt = document.createElement("option");
+      opt.value = t.id;
+      opt.textContent = t.n;
+      opt.dataset.zip = t.z;
+      aiSubdistrict.appendChild(opt);
+    });
+  }
+
+  aiProvince.addEventListener("change", () => {
     aiZipcode.value = "";
     const province = AI_ADDRESS_DATA.find((p) => String(p.id) === aiProvince.value);
-    if (province) {
-      aiDistrict.disabled = false;
-      province.d.forEach((dist) => {
-        const opt = document.createElement("option");
-        opt.value = dist.id;
-        opt.textContent = dist.n;
-        aiDistrict.appendChild(opt);
-      });
-    } else {
-      aiDistrict.disabled = true;
-    }
-    aiSubdistrict.disabled = true;
+    populateDistrictOptions(province);
   });
 
   aiDistrict.addEventListener("change", () => {
-    resetSelect(aiSubdistrict, "— เลือกตำบล/แขวง —");
     aiZipcode.value = "";
     const province = AI_ADDRESS_DATA.find((p) => String(p.id) === aiProvince.value);
     const district = province && province.d.find((d) => String(d.id) === aiDistrict.value);
-    if (district) {
-      aiSubdistrict.disabled = false;
-      district.t.forEach((t) => {
-        const opt = document.createElement("option");
-        opt.value = t.id;
-        opt.textContent = t.n;
-        opt.dataset.zip = t.z;
-        aiSubdistrict.appendChild(opt);
-      });
-    } else {
-      aiSubdistrict.disabled = true;
-    }
+    populateSubdistrictOptions(district);
   });
 
   aiSubdistrict.addEventListener("change", () => {
@@ -235,7 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
     aiZipcode.value = selected && selected.dataset.zip ? selected.dataset.zip : "";
   });
 
-  // ---- ส่งข้อมูล/เอกสารเพิ่มเติม ----
+  // ---- บันทึกการแก้ไขข้อมูล / ส่งเอกสารเพิ่มเติม ----
   additionalInfoForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     hideAlert(additionalInfoAlert);
@@ -246,8 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (!lastResult) return;
 
-    const docInput = document.getElementById("aiDoc");
-    const file = docInput.files[0];
+    const file = aiDoc.files[0];
     let additionalDocBase64 = "";
     let additionalDocName = "";
     if (file) {
@@ -264,11 +395,19 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    const titleValue = aiTitleSelect.value === "อื่น ๆ"
+      ? aiTitleOtherInput.value.trim()
+      : aiTitleSelect.value;
+
     const provinceName = aiProvince.value ? aiProvince.selectedOptions[0].textContent : "";
     const districtName = aiDistrict.value ? aiDistrict.selectedOptions[0].textContent : "";
     const subdistrictName = aiSubdistrict.value ? aiSubdistrict.selectedOptions[0].textContent : "";
 
     const data = {
+      title: titleValue,
+      firstName: document.getElementById("aiFirstName").value.trim(),
+      lastName: document.getElementById("aiLastName").value.trim(),
+      birthDate: document.getElementById("aiBirthDate").value,
       phone: document.getElementById("aiPhone").value.trim(),
       email: document.getElementById("aiEmail").value.trim(),
       address: document.getElementById("aiAddress").value.trim(),
@@ -276,6 +415,7 @@ document.addEventListener("DOMContentLoaded", () => {
       district: districtName,
       subdistrict: subdistrictName,
       zipcode: aiZipcode.value.trim(),
+      profession: document.getElementById("aiProfession").value,
       licenseNo: document.getElementById("aiLicenseNo").value.trim(),
       organization: document.getElementById("aiOrganization").value.trim(),
       education: document.getElementById("aiEducation").value.trim(),
@@ -294,18 +434,21 @@ document.addEventListener("DOMContentLoaded", () => {
         data,
       });
       if (res.ok) {
-        showAlert(additionalInfoAlert, "success", res.message || "ส่งข้อมูลเพิ่มเติมเรียบร้อยแล้ว");
-        additionalInfoForm.reset();
-        document.getElementById("rcStatus").textContent = "รอตรวจสอบ";
-        document.getElementById("rcStatus").className = "badge " + statusBadgeClass("รอตรวจสอบ");
-        additionalInfoBtn.disabled = true;
+        showAlert(additionalInfoAlert, "success", res.message || "บันทึกการแก้ไขข้อมูลเรียบร้อยแล้ว");
+        if (lastResult.status === "รอข้อมูลเพิ่มเติม") {
+          document.getElementById("rcStatus").textContent = "รอตรวจสอบ";
+          document.getElementById("rcStatus").className = "badge " + statusBadgeClass("รอตรวจสอบ");
+          infoRequestBanner.classList.add("hidden");
+          aiDoc.required = false;
+          aiDocLabel.textContent = "แนบเอกสารเพิ่มเติม (ถ้ามี)";
+        }
       } else {
-        showAlert(additionalInfoAlert, "error", res.error || "ส่งข้อมูลเพิ่มเติมไม่สำเร็จ");
+        showAlert(additionalInfoAlert, "error", res.error || "บันทึกการแก้ไขข้อมูลไม่สำเร็จ");
       }
     } catch (err) {
       showAlert(additionalInfoAlert, "error", "เชื่อมต่อระบบไม่สำเร็จ: " + err.message);
     } finally {
-      setLoading(additionalInfoBtn, false, "ส่งข้อมูลเพิ่มเติม");
+      setLoading(additionalInfoBtn, false, "บันทึกการแก้ไขข้อมูล");
     }
   });
 

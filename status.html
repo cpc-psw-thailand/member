@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ตรวจสอบสถานะสมาชิก — CPC–PSW Thailand</title><link rel="icon" type="image/png" href="logo.png">
+<title>ตรวจสอบสถานะสมาชิก — CPC–PSW Thailand</title>
 <link rel="icon" href="logo.png">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -101,7 +101,7 @@
               <div class="ecard-value" id="ecMemberID">—</div>
             </div>
             <div class="ecard-meta-item">
-              <div class="ecard-label">วันที่หมดอายุ</div>
+              <div class="ecard-label">สมาชิกภาพถึงวันที่</div>
               <div class="ecard-value" id="ecExpire">—</div>
             </div>
           </div>
@@ -110,6 +110,41 @@
         </div>
         <div class="center" style="margin-top:16px">
           <button type="button" class="btn btn-outline btn-sm" id="saveCardBtn">บันทึกภาพบัตรสมาชิก</button>
+        </div>
+
+        <!-- ขอเปลี่ยนประเภทเป็นสมาชิกสามัญ (แสดงเฉพาะสมาชิกวิสามัญที่ใช้งานอยู่) -->
+        <div id="upgradeWrap" class="hidden" style="margin-top:24px">
+          <div class="panel">
+            <h3 style="margin-bottom:4px">ขอเปลี่ยนเป็นสมาชิกสามัญ</h3>
+            <p class="muted" style="margin-bottom:16px">กรอกข้อมูลผู้ทำหน้าที่นักจิตวิทยาและนักสังคมสงเคราะห์ ป.วิ.อาญา พร้อมแนบหลักฐาน เพื่อขอเปลี่ยนประเภทสมาชิกภาพเป็นสมาชิกสามัญ เจ้าหน้าที่จะตรวจสอบและอนุมัติอีกครั้ง</p>
+            <form id="upgradeForm" novalidate>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="upRole">ตำแหน่ง<span class="req">*</span></label>
+                  <select id="upRole" required>
+                    <option value="">— เลือก —</option>
+                    <option value="นักจิตวิทยา">นักจิตวิทยา</option>
+                    <option value="นักสังคมสงเคราะห์">นักสังคมสงเคราะห์</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="upRegNo">เลขที่ทะเบียนผู้ทำหน้าที่ตาม ป.วิ.อาญา<span class="req">*</span></label>
+                  <input type="text" id="upRegNo" required>
+                </div>
+                <div class="field">
+                  <label for="upExperienceYears">ประสบการณ์ทำงาน (ปี)<span class="req">*</span></label>
+                  <input type="number" id="upExperienceYears" min="0" required>
+                </div>
+                <div class="field">
+                  <label for="upCardPhoto">แนบรูปบัตรผู้ทำหน้าที่ฯ<span class="req">*</span></label>
+                  <input type="file" id="upCardPhoto" accept="image/*" required>
+                  <div class="hint">ไฟล์รูปภาพ (JPG/PNG) ขนาดไม่เกิน 5 MB</div>
+                </div>
+              </div>
+              <div id="upgradeAlert" class="alert hidden" role="alert"></div>
+              <button type="submit" class="btn btn-primary" id="upgradeBtn">ส่งคำขอเปลี่ยนประเภทสมาชิก</button>
+            </form>
+          </div>
         </div>
       </div>
 
@@ -139,25 +174,49 @@
           <div id="renewAlert" class="alert hidden" role="alert"></div>
           <button class="btn btn-gold" id="renewBtn">ต่ออายุสมาชิกภาพ</button>
         </div>
+      </div>
 
-        <!-- ขอเอกสาร/ข้อมูลเพิ่มเติม (แสดงเมื่อสถานะ "รอข้อมูลเพิ่มเติม") -->
-        <div id="additionalInfoWrap" class="hidden" style="margin-top:16px">
-          <div class="alert alert-info">
-            <strong>เจ้าหน้าที่ขอเอกสาร/ข้อมูลเพิ่มเติมจากท่าน:</strong>
-            <p id="infoRequestMessageText" style="margin:8px 0 0;white-space:pre-wrap"></p>
-          </div>
+      <!-- แก้ไขข้อมูลสมาชิกด้วยตนเอง (แสดงเสมอหลังตรวจสอบสถานะสำเร็จ ไม่ว่าจะสถานะใด) -->
+      <div id="additionalInfoWrap" style="margin-top:24px">
+        <!-- แสดงเฉพาะเมื่อสถานะ "รอข้อมูลเพิ่มเติม" -->
+        <div id="infoRequestBanner" class="alert alert-info hidden">
+          <strong>เจ้าหน้าที่ขอเอกสาร/ข้อมูลเพิ่มเติมจากท่าน:</strong>
+          <p id="infoRequestMessageText" style="margin:8px 0 0;white-space:pre-wrap"></p>
+        </div>
 
-          <div class="panel" style="margin-top:14px">
-            <h3 style="margin-bottom:4px">ข้อมูลปัจจุบันของท่าน</h3>
-            <p class="muted" style="margin-bottom:14px">อ้างอิงเท่านั้น — แก้ไขได้ในแบบฟอร์มด้านล่าง</p>
-            <div class="detail-grid" id="currentInfoGrid" style="margin-bottom:4px"></div>
-          </div>
-
-          <div class="panel" style="margin-top:14px">
-            <h3 style="margin-bottom:4px">แก้ไขข้อมูล / แนบเอกสารเพิ่มเติม</h3>
-            <p class="muted" style="margin-bottom:16px">กรอกเฉพาะช่องที่ต้องการแก้ไขหรืออัปเดต ช่องที่เว้นว่างไว้จะไม่ถูกเปลี่ยนแปลง</p>
-            <form id="additionalInfoForm" novalidate>
+        <div class="panel" style="margin-top:14px">
+          <h3 style="margin-bottom:4px">แก้ไขข้อมูลสมาชิก</h3>
+          <p class="muted" style="margin-bottom:16px">ตรวจสอบและแก้ไขข้อมูลของท่านได้ตลอดเวลา ข้อมูลด้านล่างคือข้อมูลปัจจุบันของท่าน แก้ไขเฉพาะช่องที่ต้องการเปลี่ยนแปลงแล้วกดบันทึก ช่องที่เว้นว่างไว้จะไม่ถูกเปลี่ยนแปลง</p>
+          <form id="additionalInfoForm" novalidate>
+            <fieldset>
+              <legend>ข้อมูลส่วนบุคคล</legend>
               <div class="field-grid">
+                <div class="field">
+                  <label for="aiTitle">คำนำหน้า</label>
+                  <select id="aiTitle">
+                    <option value="">— ไม่เปลี่ยนแปลง —</option>
+                    <option value="นาย">นาย</option>
+                    <option value="นาง">นาง</option>
+                    <option value="นางสาว">นางสาว</option>
+                    <option value="อื่น ๆ">อื่น ๆ</option>
+                  </select>
+                </div>
+                <div class="field hidden" id="aiTitleOtherField">
+                  <label for="aiTitleOther">ระบุคำนำหน้า</label>
+                  <input type="text" id="aiTitleOther">
+                </div>
+                <div class="field">
+                  <label for="aiFirstName">ชื่อ</label>
+                  <input type="text" id="aiFirstName">
+                </div>
+                <div class="field">
+                  <label for="aiLastName">นามสกุล</label>
+                  <input type="text" id="aiLastName">
+                </div>
+                <div class="field">
+                  <label for="aiBirthDate">วันเดือนปีเกิด</label>
+                  <input type="date" id="aiBirthDate">
+                </div>
                 <div class="field">
                   <label for="aiPhone">เบอร์โทรศัพท์</label>
                   <input type="tel" id="aiPhone">
@@ -192,6 +251,20 @@
                   <label for="aiZipcode">รหัสไปรษณีย์</label>
                   <input type="text" id="aiZipcode" readonly placeholder="เลือกที่อยู่เพื่อแสดงอัตโนมัติ">
                 </div>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>ข้อมูลวิชาชีพ</legend>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="aiProfession">วิชาชีพ</label>
+                  <select id="aiProfession">
+                    <option value="">— ไม่เปลี่ยนแปลง —</option>
+                    <option value="นักสังคมสงเคราะห์">นักสังคมสงเคราะห์</option>
+                    <option value="นักจิตวิทยา">นักจิตวิทยา</option>
+                  </select>
+                </div>
                 <div class="field">
                   <label for="aiLicenseNo">เลขที่ใบประกอบโรคศิลปะ</label>
                   <input type="text" id="aiLicenseNo">
@@ -204,6 +277,12 @@
                   <label for="aiEducation">วุฒิการศึกษา</label>
                   <input type="text" id="aiEducation">
                 </div>
+              </div>
+            </fieldset>
+
+            <fieldset id="aiCpcFieldset">
+              <legend>ข้อมูลผู้ทำหน้าที่ ป.วิ.อาญา</legend>
+              <div class="field-grid">
                 <div class="field">
                   <label for="aiCpcRegNo">เลขที่ทะเบียนผู้ทำหน้าที่ ป.วิ.อาญา</label>
                   <input type="text" id="aiCpcRegNo">
@@ -213,21 +292,21 @@
                   <input type="number" id="aiCpcExperienceYears" min="0">
                 </div>
               </div>
+            </fieldset>
 
-              <div class="field full">
-                <label for="aiDoc">แนบเอกสารเพิ่มเติมตามที่เจ้าหน้าที่ร้องขอ<span class="req">*</span></label>
-                <input type="file" id="aiDoc" accept="image/*,application/pdf" required>
-                <div class="hint">ไฟล์ภาพหรือ PDF ขนาดไม่เกิน 5 MB</div>
-              </div>
-              <div class="field full">
-                <label for="aiNote">ข้อความถึงเจ้าหน้าที่ (ถ้ามี)</label>
-                <textarea id="aiNote" placeholder="อธิบายเอกสาร/ข้อมูลที่แนบมา"></textarea>
-              </div>
+            <div class="field full">
+              <label for="aiDoc" id="aiDocLabel">แนบเอกสารเพิ่มเติม (ถ้ามี)</label>
+              <input type="file" id="aiDoc" accept="image/*,application/pdf">
+              <div class="hint">ไฟล์ภาพหรือ PDF ขนาดไม่เกิน 5 MB</div>
+            </div>
+            <div class="field full">
+              <label for="aiNote">ข้อความถึงเจ้าหน้าที่ (ถ้ามี)</label>
+              <textarea id="aiNote" placeholder="อธิบายเหตุผลของการแก้ไข หรือเอกสารที่แนบมา"></textarea>
+            </div>
 
-              <div id="additionalInfoAlert" class="alert hidden" role="alert"></div>
-              <button type="submit" class="btn btn-primary" id="additionalInfoBtn">ส่งข้อมูลเพิ่มเติม</button>
-            </form>
-          </div>
+            <div id="additionalInfoAlert" class="alert hidden" role="alert"></div>
+            <button type="submit" class="btn btn-primary" id="additionalInfoBtn">บันทึกการแก้ไขข้อมูล</button>
+          </form>
         </div>
       </div>
 

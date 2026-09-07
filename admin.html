@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>สำหรับเจ้าหน้าที่ — CPC–PSW Thailand</title><link rel="icon" type="image/png" href="logo.png">
+<title>สำหรับเจ้าหน้าที่ — CPC–PSW Thailand</title>
 <link rel="icon" href="logo.png">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -55,8 +55,9 @@
           <h1 style="margin-bottom:2px">รายการสมาชิก</h1>
           <p class="muted" style="margin:0">ตรวจสอบ อนุมัติ และจัดการสถานะสมาชิกภาพ</p>
         </div>
-        <div style="display:flex;gap:8px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-gold btn-sm" id="addHonoraryBtn">+ เพิ่มสมาชิกกิตติมศักดิ์</button>
+          <button class="btn btn-outline btn-sm" id="addNewsletterBtn">+ ส่งข่าวสารถึงสมาชิก</button>
           <button class="btn btn-outline btn-sm" id="refreshBtn">โหลดข้อมูลใหม่</button>
           <button class="btn btn-outline btn-sm" id="logoutBtn">ออกจากระบบ</button>
         </div>
@@ -65,138 +66,208 @@
 
       <div id="dashAlert" class="alert hidden" role="alert"></div>
 
-      <!-- STATS DASHBOARD -->
-      <div class="stat-grid" id="statGrid">
-        <div class="stat-card">
-          <div class="stat-value" id="statTotal">0</div>
-          <div class="stat-label">สมาชิกทั้งหมด</div>
+      <!-- TABS -->
+      <div class="admin-tabs">
+        <button type="button" class="admin-tab active" data-tab="dashboard">แดชบอร์ด</button>
+        <button type="button" class="admin-tab" data-tab="manage">ตรวจสอบ/จัดการสมาชิก</button>
+      </div>
+
+      <!-- TAB: DASHBOARD -->
+      <div id="tabDashboard" class="admin-tab-panel">
+        <!-- STATS DASHBOARD -->
+        <div class="stat-grid" id="statGrid">
+          <div class="stat-card">
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-label">สมาชิกทั้งหมด</div>
+          </div>
+          <div class="stat-card stat-pending">
+            <div class="stat-value" id="statPending">0</div>
+            <div class="stat-label">รอตรวจสอบ</div>
+          </div>
+          <div class="stat-card stat-needinfo">
+            <div class="stat-value" id="statNeedInfo">0</div>
+            <div class="stat-label">รอข้อมูลเพิ่มเติม</div>
+          </div>
+          <div class="stat-card stat-active">
+            <div class="stat-value" id="statActive">0</div>
+            <div class="stat-label">ใช้งานอยู่</div>
+          </div>
+          <div class="stat-card stat-suspended">
+            <div class="stat-value" id="statSuspended">0</div>
+            <div class="stat-label">ระงับ</div>
+          </div>
+          <div class="stat-card stat-expired">
+            <div class="stat-value" id="statExpired">0</div>
+            <div class="stat-label">หมดอายุ</div>
+          </div>
+          <div class="stat-card stat-rejected">
+            <div class="stat-value" id="statRejected">0</div>
+            <div class="stat-label">ไม่อนุมัติ</div>
+          </div>
         </div>
-        <div class="stat-card stat-pending">
-          <div class="stat-value" id="statPending">0</div>
-          <div class="stat-label">รอตรวจสอบ</div>
+
+        <!-- PROFESSION RATIO PANEL -->
+        <div class="panel" style="margin-bottom:24px">
+          <h3 style="margin-bottom:14px">จำนวน/สัดส่วนวิชาชีพ</h3>
+          <div class="profession-bar">
+            <div class="profession-bar-seg seg-social" id="professionBarSocial" style="width:0%"></div>
+            <div class="profession-bar-seg seg-psych" id="professionBarPsych" style="width:0%"></div>
+            <div class="profession-bar-seg seg-other" id="professionBarOther" style="width:0%"></div>
+          </div>
+          <div class="profession-legend">
+            <div class="profession-legend-item">
+              <span class="dot dot-social"></span>
+              นักสังคมสงเคราะห์ <strong id="professionSocialCount">0</strong> คน (<span id="professionSocialPct">0%</span>)
+            </div>
+            <div class="profession-legend-item">
+              <span class="dot dot-psych"></span>
+              นักจิตวิทยา <strong id="professionPsychCount">0</strong> คน (<span id="professionPsychPct">0%</span>)
+            </div>
+            <div class="profession-legend-item hidden" id="professionOtherItem">
+              <span class="dot dot-other"></span>
+              อื่น ๆ/ไม่ระบุ <strong id="professionOtherCount">0</strong> คน (<span id="professionOtherPct">0%</span>)
+            </div>
+          </div>
         </div>
-        <div class="stat-card stat-needinfo">
-          <div class="stat-value" id="statNeedInfo">0</div>
-          <div class="stat-label">รอข้อมูลเพิ่มเติม</div>
-        </div>
-        <div class="stat-card stat-active">
-          <div class="stat-value" id="statActive">0</div>
-          <div class="stat-label">ใช้งานอยู่</div>
-        </div>
-        <div class="stat-card stat-suspended">
-          <div class="stat-value" id="statSuspended">0</div>
-          <div class="stat-label">ระงับ</div>
-        </div>
-        <div class="stat-card stat-expired">
-          <div class="stat-value" id="statExpired">0</div>
-          <div class="stat-label">หมดอายุ</div>
-        </div>
-        <div class="stat-card stat-rejected">
-          <div class="stat-value" id="statRejected">0</div>
-          <div class="stat-label">ไม่อนุมัติ</div>
+
+        <!-- MEMBER TYPE RATIO PANEL -->
+        <div class="panel" style="margin-bottom:24px">
+          <h3 style="margin-bottom:14px">จำนวน/สัดส่วนประเภทสมาชิก</h3>
+          <div class="profession-bar">
+            <div class="profession-bar-seg seg-samanya" id="typeBarSamanya" style="width:0%"></div>
+            <div class="profession-bar-seg seg-wisamanya" id="typeBarWisamanya" style="width:0%"></div>
+            <div class="profession-bar-seg seg-honorary" id="typeBarHonorary" style="width:0%"></div>
+          </div>
+          <div class="profession-legend">
+            <div class="profession-legend-item">
+              <span class="dot dot-samanya"></span>
+              สมาชิกสามัญ <strong id="typeSamanyaCount">0</strong> คน (<span id="typeSamanyaPct">0%</span>)
+            </div>
+            <div class="profession-legend-item">
+              <span class="dot dot-wisamanya"></span>
+              สมาชิกวิสามัญ <strong id="typeWisamanyaCount">0</strong> คน (<span id="typeWisamanyaPct">0%</span>)
+            </div>
+            <div class="profession-legend-item hidden" id="typeHonoraryItem">
+              <span class="dot dot-honorary"></span>
+              สมาชิกกิตติมศักดิ์ <strong id="typeHonoraryCount">0</strong> คน (<span id="typeHonoraryPct">0%</span>)
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- PROFESSION RATIO PANEL -->
-      <div class="panel" style="margin-bottom:24px">
-        <h3 style="margin-bottom:14px">จำนวน/สัดส่วนวิชาชีพ</h3>
-        <div class="profession-bar">
-          <div class="profession-bar-seg seg-social" id="professionBarSocial" style="width:0%"></div>
-          <div class="profession-bar-seg seg-psych" id="professionBarPsych" style="width:0%"></div>
-          <div class="profession-bar-seg seg-other" id="professionBarOther" style="width:0%"></div>
+      <!-- TAB: MANAGE MEMBERS -->
+      <div id="tabManage" class="admin-tab-panel hidden">
+        <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+          <button class="btn btn-gold btn-sm" id="addHonoraryBtn">+ เพิ่มสมาชิกกิตติมศักดิ์</button>
+          <button class="btn btn-outline btn-sm" id="addNewsletterBtn">+ ส่งข่าวสารถึงสมาชิก</button>
         </div>
-        <div class="profession-legend">
-          <div class="profession-legend-item">
-            <span class="dot dot-social"></span>
-            นักสังคมสงเคราะห์ <strong id="professionSocialCount">0</strong> คน (<span id="professionSocialPct">0%</span>)
-          </div>
-          <div class="profession-legend-item">
-            <span class="dot dot-psych"></span>
-            นักจิตวิทยา <strong id="professionPsychCount">0</strong> คน (<span id="professionPsychPct">0%</span>)
-          </div>
-          <div class="profession-legend-item hidden" id="professionOtherItem">
-            <span class="dot dot-other"></span>
-            อื่น ๆ/ไม่ระบุ <strong id="professionOtherCount">0</strong> คน (<span id="professionOtherPct">0%</span>)
-          </div>
+
+        <!-- ADD HONORARY MEMBER PANEL -->
+        <div id="honoraryPanel" class="panel hidden" style="margin-bottom:24px">
+          <h3 style="margin-bottom:4px">เพิ่มสมาชิกกิตติมศักดิ์</h3>
+          <p class="muted" style="margin-bottom:16px">สำหรับผู้ทรงคุณวุฒิที่ชมรมเชิญเป็นกรณีพิเศษ — ระบบจะออกรหัสสมาชิกและตั้งสถานะ "ใช้งานอยู่" ให้ทันที ไม่ต้องผ่านขั้นตอนรอตรวจสอบ</p>
+          <form id="honoraryForm" novalidate>
+            <div class="field-grid">
+              <div class="field">
+                <label for="hTitle">คำนำหน้า<span class="req">*</span></label>
+                <input type="text" id="hTitle" required>
+              </div>
+              <div class="field">
+                <label for="hFirstName">ชื่อ<span class="req">*</span></label>
+                <input type="text" id="hFirstName" required>
+              </div>
+              <div class="field">
+                <label for="hLastName">นามสกุล<span class="req">*</span></label>
+                <input type="text" id="hLastName" required>
+              </div>
+              <div class="field">
+                <label for="hPhone">เบอร์โทรศัพท์</label>
+                <input type="tel" id="hPhone">
+              </div>
+              <div class="field">
+                <label for="hEmail">อีเมล</label>
+                <input type="email" id="hEmail">
+              </div>
+              <div class="field">
+                <label for="hOrganization">หน่วยงาน / ตำแหน่ง</label>
+                <input type="text" id="hOrganization">
+              </div>
+              <div class="field full">
+                <label for="hNote">หมายเหตุ</label>
+                <input type="text" id="hNote" placeholder="เช่น เหตุผลที่เชิญเป็นสมาชิกกิตติมศักดิ์">
+              </div>
+            </div>
+            <div style="display:flex;gap:10px">
+              <button type="submit" class="btn btn-primary" id="honoraryBtn">เพิ่มสมาชิก</button>
+              <button type="button" class="btn btn-outline" id="honoraryCancelBtn">ยกเลิก</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- SEND NEWSLETTER PANEL -->
+        <div id="newsletterPanel" class="panel hidden" style="margin-bottom:24px">
+          <h3 style="margin-bottom:4px">ส่งข่าวสารถึงสมาชิกทางอีเมล</h3>
+          <p class="muted" id="newsletterQuotaText" style="margin-bottom:16px">กำลังตรวจสอบโควต้าอีเมล...</p>
+          <form id="newsletterForm" novalidate>
+            <div class="field-grid">
+              <div class="field">
+                <label for="nlAudience">ส่งถึง</label>
+                <select id="nlAudience">
+                  <option value="active">เฉพาะสมาชิกที่ใช้งานอยู่</option>
+                  <option value="all">สมาชิกทุกคน (ทุกสถานะที่มีอีเมล)</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="nlSubject">หัวข้ออีเมล<span class="req">*</span></label>
+                <input type="text" id="nlSubject" required>
+              </div>
+              <div class="field full">
+                <label for="nlMessage">เนื้อหาข่าวสาร<span class="req">*</span></label>
+                <textarea id="nlMessage" required style="min-height:140px"></textarea>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px">
+              <button type="submit" class="btn btn-primary" id="newsletterBtn">ส่งอีเมล</button>
+              <button type="button" class="btn btn-outline" id="newsletterCancelBtn">ยกเลิก</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="filter-bar">
+          <select id="filterStatus">
+            <option value="">ทุกสถานะ</option>
+            <option value="รอตรวจสอบ">รอตรวจสอบ</option>
+            <option value="รอข้อมูลเพิ่มเติม">รอข้อมูลเพิ่มเติม</option>
+            <option value="ใช้งานอยู่">ใช้งานอยู่</option>
+            <option value="ไม่อนุมัติ">ไม่อนุมัติ</option>
+            <option value="ระงับ">ระงับ</option>
+            <option value="หมดอายุ">หมดอายุ</option>
+          </select>
+          <input type="text" id="filterSearch" placeholder="ค้นหาชื่อ / เลขบัตรประชาชน / รหัสสมาชิก">
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>รหัสสมาชิก</th>
+                <th>ชื่อ-นามสกุล</th>
+                <th>วิชาชีพ</th>
+                <th>ประเภท</th>
+                <th>เลขทะเบียน ป.วิ.อาญา</th>
+                <th>สถานะ</th>
+                <th>วันสมัคร</th>
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="memberTableBody">
+              <tr><td colspan="8" class="center muted">กำลังโหลดข้อมูล...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- ADD HONORARY MEMBER PANEL -->
-      <div id="honoraryPanel" class="panel hidden" style="margin-bottom:24px">
-        <h3 style="margin-bottom:4px">เพิ่มสมาชิกกิตติมศักดิ์</h3>
-        <p class="muted" style="margin-bottom:16px">สำหรับผู้ทรงคุณวุฒิที่ชมรมเชิญเป็นกรณีพิเศษ — ระบบจะออกรหัสสมาชิกและตั้งสถานะ "ใช้งานอยู่" ให้ทันที ไม่ต้องผ่านขั้นตอนรอตรวจสอบ</p>
-        <form id="honoraryForm" novalidate>
-          <div class="field-grid">
-            <div class="field">
-              <label for="hTitle">คำนำหน้า<span class="req">*</span></label>
-              <input type="text" id="hTitle" required>
-            </div>
-            <div class="field">
-              <label for="hFirstName">ชื่อ<span class="req">*</span></label>
-              <input type="text" id="hFirstName" required>
-            </div>
-            <div class="field">
-              <label for="hLastName">นามสกุล<span class="req">*</span></label>
-              <input type="text" id="hLastName" required>
-            </div>
-            <div class="field">
-              <label for="hPhone">เบอร์โทรศัพท์</label>
-              <input type="tel" id="hPhone">
-            </div>
-            <div class="field">
-              <label for="hEmail">อีเมล</label>
-              <input type="email" id="hEmail">
-            </div>
-            <div class="field">
-              <label for="hOrganization">หน่วยงาน / ตำแหน่ง</label>
-              <input type="text" id="hOrganization">
-            </div>
-            <div class="field full">
-              <label for="hNote">หมายเหตุ</label>
-              <input type="text" id="hNote" placeholder="เช่น เหตุผลที่เชิญเป็นสมาชิกกิตติมศักดิ์">
-            </div>
-          </div>
-          <div style="display:flex;gap:10px">
-            <button type="submit" class="btn btn-primary" id="honoraryBtn">เพิ่มสมาชิก</button>
-            <button type="button" class="btn btn-outline" id="honoraryCancelBtn">ยกเลิก</button>
-          </div>
-        </form>
-      </div>
-
-      <div class="filter-bar">
-        <select id="filterStatus">
-          <option value="">ทุกสถานะ</option>
-          <option value="รอตรวจสอบ">รอตรวจสอบ</option>
-          <option value="รอข้อมูลเพิ่มเติม">รอข้อมูลเพิ่มเติม</option>
-          <option value="ใช้งานอยู่">ใช้งานอยู่</option>
-          <option value="ไม่อนุมัติ">ไม่อนุมัติ</option>
-          <option value="ระงับ">ระงับ</option>
-          <option value="หมดอายุ">หมดอายุ</option>
-        </select>
-        <input type="text" id="filterSearch" placeholder="ค้นหาชื่อ / เลขบัตรประชาชน / รหัสสมาชิก">
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>รหัสสมาชิก</th>
-              <th>ชื่อ-นามสกุล</th>
-              <th>วิชาชีพ</th>
-              <th>ประเภท</th>
-              <th>เลขทะเบียน ป.วิ.อาญา</th>
-              <th>สถานะ</th>
-              <th>วันสมัคร</th>
-              <th>จัดการ</th>
-            </tr>
-          </thead>
-          <tbody id="memberTableBody">
-            <tr><td colspan="8" class="center muted">กำลังโหลดข้อมูล...</td></tr>
-          </tbody>
-        </table>
-      </div>
     </div>
-
   </div>
 </section>
 

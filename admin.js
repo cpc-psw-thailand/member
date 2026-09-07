@@ -17,6 +17,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const honoraryBtn = document.getElementById("honoraryBtn");
   const honoraryCancelBtn = document.getElementById("honoraryCancelBtn");
 
+  const addNewsletterBtn = document.getElementById("addNewsletterBtn");
+  const newsletterPanel = document.getElementById("newsletterPanel");
+  const newsletterForm = document.getElementById("newsletterForm");
+  const newsletterBtn = document.getElementById("newsletterBtn");
+  const newsletterCancelBtn = document.getElementById("newsletterCancelBtn");
+  const newsletterQuotaText = document.getElementById("newsletterQuotaText");
+
   const detailModal = document.getElementById("detailModal");
   const modalBody = document.getElementById("modalBody");
   const modalCloseBtn = document.getElementById("modalCloseBtn");
@@ -63,6 +70,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   refreshBtn.addEventListener("click", loadList);
   filterStatus.addEventListener("change", renderTable);
+
+  // ---- แท็บแดชบอร์ด / จัดการสมาชิก ----
+  const tabButtons = document.querySelectorAll(".admin-tab");
+  const tabPanels = {
+    dashboard: document.getElementById("tabDashboard"),
+    manage: document.getElementById("tabManage"),
+  };
+  tabButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      tabButtons.forEach((b) => b.classList.remove("active"));
+      Object.values(tabPanels).forEach((p) => p.classList.add("hidden"));
+      btn.classList.add("active");
+      tabPanels[btn.dataset.tab].classList.remove("hidden");
+    });
+  });
+
   filterSearch.addEventListener("input", renderTable);
 
   // ---- แผงเพิ่มสมาชิกกิตติมศักดิ์ ----
@@ -109,6 +132,74 @@ document.addEventListener("DOMContentLoaded", () => {
       showAlert(dashAlert, "error", "เชื่อมต่อระบบไม่สำเร็จ: " + err.message);
     } finally {
       setLoading(honoraryBtn, false, "เพิ่มสมาชิก");
+    }
+  });
+
+  // ---- แผงส่งข่าวสารถึงสมาชิกทางอีเมล ----
+  addNewsletterBtn.addEventListener("click", async () => {
+    const opening = newsletterPanel.classList.contains("hidden");
+    newsletterPanel.classList.toggle("hidden");
+    if (opening) {
+      newsletterQuotaText.textContent = "กำลังตรวจสอบโควต้าอีเมล...";
+      try {
+        const res = await callApi("adminGetEmailQuota", { password: getPassword() });
+        if (res.ok) {
+          newsletterQuotaText.textContent =
+            `โควต้าอีเมลคงเหลือวันนี้: ${res.quota} ฉบับ (ระบบจะส่งได้สูงสุด ${res.sendable} ฉบับ เพื่อสำรองโควต้าไว้ใช้งานส่วนอื่นของระบบ เช่น อีเมลแจ้งผลอนุมัติ)`;
+        } else {
+          newsletterQuotaText.textContent = "ตรวจสอบโควต้าอีเมลไม่สำเร็จ: " + (res.error || "");
+        }
+      } catch (err) {
+        newsletterQuotaText.textContent = "เชื่อมต่อระบบไม่สำเร็จ: " + err.message;
+      }
+    }
+  });
+
+  newsletterCancelBtn.addEventListener("click", () => {
+    newsletterForm.reset();
+    newsletterPanel.classList.add("hidden");
+  });
+
+  newsletterForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const dashAlert = document.getElementById("dashAlert");
+    hideAlert(dashAlert);
+
+    if (!newsletterForm.checkValidity()) {
+      newsletterForm.reportValidity();
+      return;
+    }
+
+    const { confirmed } = await showConfirm({
+      title: "ยืนยันการส่งข่าวสาร",
+      message: "ยืนยันการส่งอีเมลข่าวสารนี้ถึงสมาชิกตามกลุ่มเป้าหมายที่เลือก?",
+      confirmLabel: "ส่งอีเมล",
+    });
+    if (!confirmed) return;
+
+    const data = {
+      audience: document.getElementById("nlAudience").value,
+      subject: document.getElementById("nlSubject").value.trim(),
+      message: document.getElementById("nlMessage").value.trim(),
+    };
+
+    setLoading(newsletterBtn, true);
+    try {
+      const res = await callApi("adminSendNewsletter", { password: getPassword(), ...data });
+      if (res.ok) {
+        const skipNote = res.skipped > 0
+          ? ` (เหลืออีก ${res.skipped} ฉบับที่ยังไม่ได้ส่งเนื่องจากโควต้ารายวันไม่พอ กรุณาส่งใหม่ในวันถัดไป)`
+          : "";
+        showAlert(dashAlert, "success", `ส่งอีเมลสำเร็จ ${res.sent} จาก ${res.totalRecipients} ฉบับ${skipNote}`);
+        newsletterForm.reset();
+        newsletterPanel.classList.add("hidden");
+      } else {
+        showAlert(dashAlert, "error", res.error || "ส่งอีเมลไม่สำเร็จ");
+      }
+    } catch (err) {
+      showAlert(dashAlert, "error", "เชื่อมต่อระบบไม่สำเร็จ: " + err.message);
+    } finally {
+      setLoading(newsletterBtn, false, "ส่งอีเมล");
     }
   });
 
@@ -196,7 +287,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function openDetail(m) {
     modalBody.innerHTML = renderDetail(m);
+    wireModalActions(m);
     detailModal.classList.remove("hidden");
+  }
+
+  function wireModalActions(m) {
+    modalBody.querySelectorAll("[data-modal-action]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const action = btn.dataset.modalAction;
+        const fullName = (m.title + " " + m.firstName + " " + m.lastName).trim();
+
+        if (action === "approveUpgrade") {
+          const { confirmed } = await showConfirm({
+            title: "อนุมัติเปลี่ยนประเภทสมาชิก",
+            message: `ยืนยันเปลี่ยนประเภทสมาชิกของ ${fullName} จากสมาชิกวิสามัญเป็นสมาชิกสามัญ?`,
+            confirmLabel: "อนุมัติ",
+          });
+          if (!confirmed) return;
+          const res = await callApi("adminApproveUpgrade", { password: getPassword(), row: m.row });
+          if (res.ok) { closeModal(); loadList(); } else { alert(res.error || "ดำเนินการไม่สำเร็จ"); }
+        } else if (action === "rejectUpgrade") {
+          const { confirmed, reason } = await showConfirm({
+            title: "ปฏิเสธคำขอเปลี่ยนประเภท",
+            message: "ระบุเหตุผล (ถ้ามี) แล้วกดยืนยัน — สมาชิกจะยังคงเป็นสมาชิกวิสามัญตามเดิม",
+            withReason: true,
+            confirmLabel: "ปฏิเสธคำขอ",
+            danger: true,
+          });
+          if (!confirmed) return;
+          const res = await callApi("adminRejectUpgrade", { password: getPassword(), row: m.row, reason });
+          if (res.ok) { closeModal(); loadList(); } else { alert(res.error || "ดำเนินการไม่สำเร็จ"); }
+        }
+      });
+    });
   }
 
   function detailItem(label, value) {
@@ -260,7 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    if (m.cpcRole || m.cpcRegNo || m.cpcCardPhotoURL) {
+    if ((m.cpcRole || m.cpcRegNo || m.cpcCardPhotoURL) && !m.upgradeRequestDate) {
       html += `
         <div class="detail-section">
           <h4>ข้อมูลผู้ทำหน้าที่นักจิตวิทยาและนักสังคมสงเคราะห์ ป.วิ.อาญา</h4>
@@ -278,6 +401,33 @@ document.addEventListener("DOMContentLoaded", () => {
               </div>
             </div>
           ` : ""}
+        </div>
+      `;
+    }
+
+    if (m.upgradeRequestDate) {
+      html += `
+        <div class="detail-section">
+          <h4>คำขอเปลี่ยนประเภทเป็นสมาชิกสามัญ</h4>
+          <div class="detail-grid">
+            ${detailItem("ตำแหน่ง", m.cpcRole)}
+            ${detailItem("เลขที่ทะเบียน ป.วิ.อาญา", m.cpcRegNo)}
+            ${detailItem("ประสบการณ์ทำงาน (ปี)", m.cpcExperienceYears)}
+            ${detailItem("วันที่ขอเปลี่ยนประเภท", m.upgradeRequestDate)}
+          </div>
+          ${m.cpcCardPhotoURL ? `
+            <div style="margin-top:12px">
+              <div class="dt-label" style="margin-bottom:6px">รูปบัตรผู้ทำหน้าที่ฯ (แนบมากับคำขอ)</div>
+              <img class="detail-photo" src="${escapeHtml(drivePhotoSrc(m.cpcCardPhotoURL))}" alt="รูปบัตรผู้ทำหน้าที่ฯ" loading="lazy" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('p'),{className:'muted',textContent:'ไม่สามารถแสดงรูปตัวอย่างได้ กรุณากดลิงก์ด้านล่างเพื่อเปิดดูรูป'}))">
+              <div style="margin-top:6px">
+                <a href="${escapeHtml(drivePhotoLink(m.cpcCardPhotoURL))}" target="_blank" rel="noopener">เปิดรูปในแท็บใหม่</a>
+              </div>
+            </div>
+          ` : ""}
+          <div style="display:flex;gap:10px;margin-top:14px">
+            <button type="button" class="btn btn-gold btn-sm" data-modal-action="approveUpgrade">อนุมัติเปลี่ยนประเภท</button>
+            <button type="button" class="btn btn-danger btn-sm" data-modal-action="rejectUpgrade">ปฏิเสธคำขอ</button>
+          </div>
         </div>
       `;
     }
@@ -327,6 +477,7 @@ document.addEventListener("DOMContentLoaded", () => {
         currentList = res.list.reverse(); // ล่าสุดขึ้นก่อน
         renderStats();
         renderProfessionStats();
+        renderTypeStats();
         renderTable();
       } else {
         showAlert(dashAlert, "error", res.error || "โหลดข้อมูลไม่สำเร็จ");
@@ -383,6 +534,30 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("professionOtherItem").classList.toggle("hidden", counts.other === 0);
   }
 
+  function renderTypeStats() {
+    const counts = { samanya: 0, wisamanya: 0, honorary: 0 };
+    currentList.forEach((m) => {
+      if (m.memberType === "สมาชิกสามัญ") counts.samanya++;
+      else if (m.memberType === "สมาชิกวิสามัญ") counts.wisamanya++;
+      else if (m.memberType === "สมาชิกกิตติมศักดิ์") counts.honorary++;
+    });
+    const total = counts.samanya + counts.wisamanya + counts.honorary;
+    const pct = (n) => (total ? Math.round((n / total) * 100) : 0);
+
+    document.getElementById("typeSamanyaCount").textContent = counts.samanya;
+    document.getElementById("typeWisamanyaCount").textContent = counts.wisamanya;
+    document.getElementById("typeHonoraryCount").textContent = counts.honorary;
+    document.getElementById("typeSamanyaPct").textContent = pct(counts.samanya) + "%";
+    document.getElementById("typeWisamanyaPct").textContent = pct(counts.wisamanya) + "%";
+    document.getElementById("typeHonoraryPct").textContent = pct(counts.honorary) + "%";
+
+    document.getElementById("typeBarSamanya").style.width = pct(counts.samanya) + "%";
+    document.getElementById("typeBarWisamanya").style.width = pct(counts.wisamanya) + "%";
+    document.getElementById("typeBarHonorary").style.width = pct(counts.honorary) + "%";
+
+    document.getElementById("typeHonoraryItem").classList.toggle("hidden", counts.honorary === 0);
+  }
+
   function renderTable() {
     const tbody = document.getElementById("memberTableBody");
     const statusVal = filterStatus.value;
@@ -407,7 +582,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${m.memberID || "—"}</td>
         <td><a href="#" data-action="detail" style="font-weight:600">${escapeHtml(m.title + " " + m.firstName + " " + m.lastName)}</a></td>
         <td>${escapeHtml(m.profession || "—")}</td>
-        <td>${escapeHtml(m.memberType || "")}</td>
+        <td>${escapeHtml(m.memberType || "")}${m.upgradeRequestDate ? ' <span class="badge badge-needinfo" style="font-size:.62rem;white-space:nowrap">ขอเปลี่ยนเป็นสามัญ</span>' : ""}</td>
         <td>${cpcRegCell(m)}</td>
         <td><span class="badge ${statusBadgeClass(m.status)}">${m.status}</span></td>
         <td>${m.applyDate}</td>
