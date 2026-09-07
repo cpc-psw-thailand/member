@@ -610,6 +610,10 @@ tbody tr:nth-child(even) { background: #FBFAF6; }
 .stat-card.stat-expired { border-top-color: #9A9689; }
 .stat-card.stat-rejected { border-top-color: var(--red); }
 
+.stat-card.stat-type-samanya { border-top-color: var(--navy); }
+.stat-card.stat-type-wisamanya { border-top-color: var(--teal); }
+.stat-card.stat-type-honorary { border-top-color: var(--purple); }
+
 /* ---------- profession ratio bar ---------- */
 .profession-bar {
   display: flex;
