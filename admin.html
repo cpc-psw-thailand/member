@@ -21,6 +21,7 @@
     <button class="nav-toggle" aria-label="เปิดเมนู">เมนู</button>
     <nav class="site-nav">
       <a href="index.html">หน้าแรก</a>
+      <a href="news.html">ข่าวสาร</a>
       <a href="register.html">สมัครสมาชิก</a>
       <a href="status.html">ตรวจสอบสถานะ</a>
       <a href="admin.html" aria-current="page">สำหรับเจ้าหน้าที่</a>
@@ -68,6 +69,7 @@
       <div class="admin-tabs">
         <button type="button" class="admin-tab active" data-tab="dashboard">แดชบอร์ด</button>
         <button type="button" class="admin-tab" data-tab="manage">ตรวจสอบ/จัดการสมาชิก</button>
+        <button type="button" class="admin-tab" data-tab="news">ข่าวสาร</button>
       </div>
 
       <!-- TAB: DASHBOARD -->
@@ -270,6 +272,77 @@
             </thead>
             <tbody id="memberTableBody">
               <tr><td colspan="8" class="center muted">กำลังโหลดข้อมูล...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB: NEWS -->
+      <div id="tabNews" class="admin-tab-panel hidden">
+        <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+          <button class="btn btn-gold btn-sm" id="addNewsBtn">+ เพิ่มข่าวสาร</button>
+        </div>
+
+        <div id="newsFormPanel" class="panel hidden" style="margin-bottom:24px">
+          <h3 style="margin-bottom:4px" id="newsFormTitle">เพิ่มข่าวสาร</h3>
+          <p class="muted" style="margin-bottom:16px">กรอกรายละเอียดข่าว แนบภาพ thumbnail สำหรับหน้ารวมข่าว และภาพประกอบเนื้อหาเพิ่มเติมได้ (ถ้ามี สูงสุด 3 รูป)</p>
+          <form id="newsForm" novalidate>
+            <div class="field-grid">
+              <div class="field full">
+                <label for="nTitle">หัวข้อข่าว<span class="req">*</span></label>
+                <input type="text" id="nTitle" required>
+              </div>
+              <div class="field full">
+                <label for="nSummary">สรุปย่อ (แสดงในหน้ารวมข่าว)<span class="req">*</span></label>
+                <textarea id="nSummary" required style="min-height:70px"></textarea>
+              </div>
+              <div class="field full">
+                <label for="nContent">เนื้อหาข่าวเต็ม<span class="req">*</span></label>
+                <textarea id="nContent" required style="min-height:180px"></textarea>
+              </div>
+              <div class="field">
+                <label for="nThumbnail" id="nThumbnailLabel">ภาพ Thumbnail<span class="req">*</span></label>
+                <input type="file" id="nThumbnail" accept="image/*">
+                <div class="hint">ใช้แสดงในหน้ารวมข่าวและเป็นภาพหลักของบทความ ไฟล์ไม่เกิน 5 MB</div>
+              </div>
+              <div class="field">
+                <label for="nImages">ภาพประกอบเนื้อหา (สูงสุด 3 รูป)</label>
+                <input type="file" id="nImages" accept="image/*" multiple>
+                <div class="hint">แสดงต่อท้ายเนื้อหาข่าว ไฟล์ละไม่เกิน 5 MB</div>
+              </div>
+              <div class="field">
+                <label for="nStatus">สถานะ</label>
+                <select id="nStatus">
+                  <option value="เผยแพร่">เผยแพร่ทันที</option>
+                  <option value="ร่าง">บันทึกเป็นฉบับร่าง</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="nAuthor">ผู้เขียน/ที่มา</label>
+                <input type="text" id="nAuthor" placeholder="เช่น ทีมงานชมรม">
+              </div>
+            </div>
+            <div id="newsFormAlert" class="alert hidden" role="alert"></div>
+            <div style="display:flex;gap:10px">
+              <button type="submit" class="btn btn-primary" id="newsFormBtn">บันทึกข่าวสาร</button>
+              <button type="button" class="btn btn-outline" id="newsFormCancelBtn">ยกเลิก</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ภาพ</th>
+                <th>หัวข้อข่าว</th>
+                <th>สถานะ</th>
+                <th>วันที่เผยแพร่</th>
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="newsTableBody">
+              <tr><td colspan="5" class="center muted">กำลังโหลดข้อมูล...</td></tr>
             </tbody>
           </table>
         </div>

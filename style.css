@@ -1084,6 +1084,128 @@ tbody tr:nth-child(even) { background: #FBFAF6; }
   letter-spacing: .01em;
 }
 
+/* ---------- news (public) ---------- */
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 22px;
+}
+
+.news-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow .15s ease, transform .15s ease;
+}
+
+.news-card:hover {
+  box-shadow: 0 10px 24px rgba(18,29,69,.1);
+  transform: translateY(-2px);
+}
+
+.news-card-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--line);
+  display: block;
+}
+
+.news-card-body {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+}
+
+.news-card-date {
+  font-size: .75rem;
+  color: var(--ink-soft);
+}
+
+.news-card-title {
+  font-family: var(--font-display);
+  color: var(--navy);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.news-card-summary {
+  font-size: .88rem;
+  color: var(--ink-soft);
+  flex: 1;
+  line-height: 1.6;
+}
+
+.news-card-cta {
+  font-size: .84rem;
+  font-weight: 600;
+  color: var(--teal);
+}
+
+.news-detail-back {
+  display: inline-block;
+  margin-bottom: 18px;
+  font-size: .88rem;
+  color: var(--navy);
+  text-decoration: none;
+}
+
+.news-detail-hero {
+  width: 100%;
+  max-height: 420px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  margin-bottom: 22px;
+  border: 1px solid var(--line);
+}
+
+.news-detail-meta {
+  font-size: .85rem;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+
+.news-detail-content {
+  font-size: .98rem;
+  line-height: 1.85;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+.news-detail-images {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 26px;
+}
+
+.news-detail-images img {
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+
+/* ---------- news (admin) ---------- */
+.news-thumb-sm {
+  width: 64px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  display: block;
+}
+
+.badge-draft { background: #E7E7E7; color: #66686E; }
+.badge-published { background: #D8EEEA; color: #1F6B66; }
+
 /* ---------- footer ---------- */
 .site-footer {
   border-top: 1px solid var(--line);

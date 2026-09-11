@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ข่าวสาร — CPC–PSW Thailand</title>
+<meta name="description" content="ข่าวประชาสัมพันธ์ชมรมนักสังคมสงเคราะห์และนักจิตวิทยา ป.วิ.อาญา">
+<link rel="icon" href="logo.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a href="index.html" class="brand">
+      <img src="logo.png" alt="ตราสัญลักษณ์ CPC-PSW Thailand">
+      <span>
+        <span class="brand-th">CPC–PSW Thailand</span><br>
+        <span class="brand-en">Social Workers &amp; Psychologists under the Criminal Procedure Code</span>
+      </span>
+    </a>
+    <button class="nav-toggle" aria-label="เปิดเมนู">เมนู</button>
+    <nav class="site-nav">
+      <a href="index.html">หน้าแรก</a>
+      <a href="news.html" aria-current="page">ข่าวสาร</a>
+      <a href="register.html">สมัครสมาชิก</a>
+      <a href="status.html">ตรวจสอบสถานะ</a>
+      <a href="admin.html">สำหรับเจ้าหน้าที่</a>
+    </nav>
+  </div>
+</header>
+
+<section class="section" style="padding-top:40px">
+  <div class="wrap">
+
+    <!-- LIST VIEW -->
+    <div id="newsListView">
+      <h1>ข่าวสาร</h1>
+      <p class="muted" style="margin-bottom:24px">ข่าวประชาสัมพันธ์และความเคลื่อนไหวของชมรมนักสังคมสงเคราะห์และนักจิตวิทยา ป.วิ.อาญา</p>
+      <div id="newsListAlert" class="alert hidden" role="alert"></div>
+      <div class="news-grid" id="newsGrid">
+        <p class="muted">กำลังโหลดข่าวสาร...</p>
+      </div>
+    </div>
+
+    <!-- DETAIL VIEW -->
+    <div id="newsDetailView" class="hidden" style="max-width:760px">
+      <a href="news.html" class="news-detail-back">← กลับไปหน้ารวมข่าวสาร</a>
+      <div id="newsDetailAlert" class="alert hidden" role="alert"></div>
+      <div id="newsDetailContent"></div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    © <span data-year></span> ชมรมนักสังคมสงเคราะห์และนักจิตวิทยา ป.วิ.อาญา (CPC–PSW Thailand)
+  </div>
+</footer>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script src="news.js"></script>
+</body>
+</html>

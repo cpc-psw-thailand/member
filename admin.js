@@ -1,4 +1,8 @@
 let currentList = [];
+let currentNewsList = [];
+let newsLoaded = false;
+let editingNewsRow = null;
+
 
 document.addEventListener("DOMContentLoaded", () => {
   const loginView = document.getElementById("loginView");
@@ -71,11 +75,12 @@ document.addEventListener("DOMContentLoaded", () => {
   refreshBtn.addEventListener("click", loadList);
   filterStatus.addEventListener("change", renderTable);
 
-  // ---- แท็บแดชบอร์ด / จัดการสมาชิก ----
+  // ---- แท็บแดชบอร์ด / จัดการสมาชิก / ข่าวสาร ----
   const tabButtons = document.querySelectorAll(".admin-tab");
   const tabPanels = {
     dashboard: document.getElementById("tabDashboard"),
     manage: document.getElementById("tabManage"),
+    news: document.getElementById("tabNews"),
   };
   tabButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -83,10 +88,197 @@ document.addEventListener("DOMContentLoaded", () => {
       Object.values(tabPanels).forEach((p) => p.classList.add("hidden"));
       btn.classList.add("active");
       tabPanels[btn.dataset.tab].classList.remove("hidden");
+      if (btn.dataset.tab === "news" && !newsLoaded) {
+        loadNewsList();
+      }
     });
   });
 
   filterSearch.addEventListener("input", renderTable);
+
+  // ---- แผงจัดการข่าวสาร ----
+  const addNewsBtn = document.getElementById("addNewsBtn");
+  const newsFormPanel = document.getElementById("newsFormPanel");
+  const newsForm = document.getElementById("newsForm");
+  const newsFormBtn = document.getElementById("newsFormBtn");
+  const newsFormCancelBtn = document.getElementById("newsFormCancelBtn");
+  const newsFormTitle = document.getElementById("newsFormTitle");
+  const newsFormAlert = document.getElementById("newsFormAlert");
+  const nThumbnail = document.getElementById("nThumbnail");
+  const nThumbnailLabel = document.getElementById("nThumbnailLabel");
+  const nImages = document.getElementById("nImages");
+
+  function openNewsForm(mode, item) {
+    newsForm.reset();
+    hideAlert(newsFormAlert);
+    if (mode === "edit" && item) {
+      editingNewsRow = item.row;
+      newsFormTitle.textContent = "แก้ไขข่าวสาร";
+      document.getElementById("nTitle").value = item.title || "";
+      document.getElementById("nSummary").value = item.summary || "";
+      document.getElementById("nContent").value = item.content || "";
+      document.getElementById("nStatus").value = item.status || "เผยแพร่";
+      document.getElementById("nAuthor").value = item.author || "";
+      nThumbnailLabel.innerHTML = "ภาพ Thumbnail (เว้นว่างไว้ถ้าไม่ต้องการเปลี่ยน)";
+      nThumbnail.required = false;
+    } else {
+      editingNewsRow = null;
+      newsFormTitle.textContent = "เพิ่มข่าวสาร";
+      nThumbnailLabel.innerHTML = 'ภาพ Thumbnail<span class="req">*</span>';
+      nThumbnail.required = true;
+    }
+    newsFormPanel.classList.remove("hidden");
+  }
+
+  addNewsBtn.addEventListener("click", () => {
+    if (newsFormPanel.classList.contains("hidden")) {
+      openNewsForm("create");
+    } else {
+      newsFormPanel.classList.add("hidden");
+    }
+  });
+
+  newsFormCancelBtn.addEventListener("click", () => {
+    newsForm.reset();
+    newsFormPanel.classList.add("hidden");
+    editingNewsRow = null;
+  });
+
+  newsForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideAlert(newsFormAlert);
+
+    if (!newsForm.checkValidity()) {
+      newsForm.reportValidity();
+      return;
+    }
+
+    const thumbFile = nThumbnail.files[0];
+    if (!editingNewsRow && !thumbFile) {
+      showAlert(newsFormAlert, "error", "กรุณาแนบภาพ thumbnail");
+      return;
+    }
+    if (thumbFile && thumbFile.size > 5 * 1024 * 1024) {
+      showAlert(newsFormAlert, "error", "ไฟล์ thumbnail ต้องมีขนาดไม่เกิน 5 MB");
+      return;
+    }
+    const imageFiles = Array.from(nImages.files || []).slice(0, 3);
+    for (const f of imageFiles) {
+      if (f.size > 5 * 1024 * 1024) {
+        showAlert(newsFormAlert, "error", `ไฟล์ "${f.name}" มีขนาดเกิน 5 MB`);
+        return;
+      }
+    }
+
+    setLoading(newsFormBtn, true);
+    try {
+      let thumbnailBase64 = "";
+      let thumbnailName = "";
+      if (thumbFile) {
+        thumbnailBase64 = await fileToBase64Admin(thumbFile);
+        thumbnailName = thumbFile.name;
+      }
+      const images = [];
+      for (const f of imageFiles) {
+        images.push({ base64: await fileToBase64Admin(f), name: f.name });
+      }
+
+      const data = {
+        title: document.getElementById("nTitle").value.trim(),
+        summary: document.getElementById("nSummary").value.trim(),
+        content: document.getElementById("nContent").value.trim(),
+        status: document.getElementById("nStatus").value,
+        author: document.getElementById("nAuthor").value.trim(),
+        thumbnailBase64: thumbnailBase64,
+        thumbnailName: thumbnailName,
+        images: images,
+      };
+
+      const action = editingNewsRow ? "adminNewsUpdate" : "adminNewsCreate";
+      const payload = editingNewsRow
+        ? { password: getPassword(), row: editingNewsRow, data }
+        : { password: getPassword(), data };
+
+      const res = await callApi(action, payload);
+      if (res.ok) {
+        newsForm.reset();
+        newsFormPanel.classList.add("hidden");
+        editingNewsRow = null;
+        loadNewsList();
+      } else {
+        showAlert(newsFormAlert, "error", res.error || "บันทึกข่าวสารไม่สำเร็จ");
+      }
+    } catch (err) {
+      showAlert(newsFormAlert, "error", "เชื่อมต่อระบบไม่สำเร็จ: " + err.message);
+    } finally {
+      setLoading(newsFormBtn, false, "บันทึกข่าวสาร");
+    }
+  });
+
+  async function loadNewsList() {
+    const tbody = document.getElementById("newsTableBody");
+    tbody.innerHTML = '<tr><td colspan="5" class="center muted">กำลังโหลดข้อมูล...</td></tr>';
+    try {
+      const res = await callApi("adminNewsList", { password: getPassword() });
+      if (res.ok) {
+        currentNewsList = res.list;
+        newsLoaded = true;
+        renderNewsTable();
+      } else {
+        tbody.innerHTML = `<tr><td colspan="5" class="center muted">${escapeHtml(res.error || "โหลดข้อมูลไม่สำเร็จ")}</td></tr>`;
+      }
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="5" class="center muted">เชื่อมต่อระบบไม่สำเร็จ: ${escapeHtml(err.message)}</td></tr>`;
+    }
+  }
+
+  function renderNewsTable() {
+    const tbody = document.getElementById("newsTableBody");
+    if (currentNewsList.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="center muted">ยังไม่มีข่าวสาร</td></tr>';
+      return;
+    }
+    tbody.innerHTML = currentNewsList.map((item) => `
+      <tr data-news-row="${item.row}">
+        <td><img class="news-thumb-sm" src="${escapeHtml(drivePhotoSrc(item.thumbnailID))}" alt="" onerror="this.style.visibility='hidden'"></td>
+        <td>${escapeHtml(item.title)}</td>
+        <td><span class="badge ${item.status === 'เผยแพร่' ? 'badge-published' : 'badge-draft'}">${escapeHtml(item.status)}</span></td>
+        <td>${escapeHtml(item.publishDate)}</td>
+        <td>
+          <div class="row-actions">
+            <button type="button" class="btn btn-outline btn-sm" data-news-action="edit">แก้ไข</button>
+            <button type="button" class="btn btn-danger btn-sm" data-news-action="delete">ลบ</button>
+          </div>
+        </td>
+      </tr>
+    `).join("");
+
+    tbody.querySelectorAll("[data-news-action]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const row = Number(btn.closest("tr").dataset.newsRow);
+        const item = currentNewsList.find((n) => n.row === row);
+        if (!item) return;
+        if (btn.dataset.newsAction === "edit") {
+          openNewsForm("edit", item);
+        } else if (btn.dataset.newsAction === "delete") {
+          const { confirmed } = await showConfirm({
+            title: "ลบข่าวสาร",
+            message: `ยืนยันการลบข่าว "${item.title}"? การลบไม่สามารถย้อนกลับได้`,
+            confirmLabel: "ลบข่าว",
+            danger: true,
+          });
+          if (!confirmed) return;
+          const res = await callApi("adminNewsDelete", { password: getPassword(), row: item.row });
+          if (res.ok) {
+            loadNewsList();
+          } else {
+            alert(res.error || "ลบข่าวไม่สำเร็จ");
+          }
+        }
+      });
+    });
+  }
+
 
   // ---- แผงเพิ่มสมาชิกกิตติมศักดิ์ ----
   addHonoraryBtn.addEventListener("click", () => {
