@@ -99,7 +99,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       : "";
 
     newsDetailContent.innerHTML = `
-      <img class="news-detail-hero" src="${newsEscapeHtml(newsDriveThumbSrc(item.thumbnailID))}" alt="${newsEscapeHtml(item.title)}" onerror="this.style.display='none'">
       <div class="news-detail-meta">${newsEscapeHtml(item.publishDate)}${item.author ? " • " + newsEscapeHtml(item.author) : ""}</div>
       <h1>${newsEscapeHtml(item.title)}</h1>
       <hr class="rule">
