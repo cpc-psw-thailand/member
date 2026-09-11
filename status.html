@@ -32,12 +32,12 @@
 <section class="section" style="padding-top:40px">
   <div class="wrap" style="max-width:680px">
     <h1>ตรวจสอบสถานะสมาชิก</h1>
-    <p class="muted">กรอกเลขบัตรประชาชนและเบอร์โทรศัพท์ที่ใช้ตอนสมัคร เพื่อตรวจสอบสถานะการสมัครหรือสมาชิกภาพ</p>
+    <p class="muted">กรอกเลขบัตรประชาชนและเบอร์โทรศัพท์ที่ใช้ตอนสมัคร เพื่อตรวจสอบสถานะการสมัครหรือสมาชิกภาพ (การแก้ไขข้อมูล ต่ออายุ หรือขอเปลี่ยนประเภทสมาชิก จะต้องยืนยันตัวตนด้วยรหัส OTP ทางอีเมลเพิ่มเติม)</p>
     <hr class="rule">
 
     <div id="alertBox" class="alert hidden" role="alert"></div>
 
-    <div class="panel">
+    <div class="panel" id="searchPanel">
       <form id="statusForm" novalidate>
         <div class="field">
           <label for="nationalID">เลขบัตรประชาชน<span class="req">*</span></label>
@@ -52,6 +52,26 @@
     </div>
 
     <div id="resultWrap" class="hidden" style="margin-top:24px">
+
+      <!-- ยืนยันตัวตนด้วยรหัส OTP (แสดงเมื่อต้องแก้ไขข้อมูล/ต่ออายุ/ขอเปลี่ยนประเภทสมาชิก) -->
+      <div id="otpWrap" class="hidden" style="margin-bottom:24px">
+        <div class="panel">
+          <h3 style="margin-bottom:4px" id="otpGateTitle">ยืนยันตัวตนด้วยรหัส OTP</h3>
+          <p class="muted" id="otpSentMessage" style="margin-bottom:16px"></p>
+          <form id="otpForm" novalidate>
+            <div class="field">
+              <label for="otpCode">รหัสยืนยัน 6 หลัก<span class="req">*</span></label>
+              <input type="text" id="otpCode" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required autocomplete="one-time-code">
+            </div>
+            <div id="otpAlert" class="alert hidden" role="alert"></div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <button type="submit" class="btn btn-primary" id="otpVerifyBtn">ยืนยันรหัส</button>
+              <button type="button" class="btn btn-outline btn-sm" id="otpResendBtn">ขอรหัสใหม่</button>
+              <button type="button" class="btn btn-outline btn-sm" id="otpCancelBtn">ยกเลิก</button>
+            </div>
+          </form>
+        </div>
+      </div>
 
       <!-- E-CARD (แสดงเมื่อสถานะ "ใช้งานอยู่") -->
       <div id="ecardWrap" class="hidden">
@@ -112,6 +132,7 @@
         <div class="center" style="margin-top:16px">
           <button type="button" class="btn btn-outline btn-sm" id="saveCardBtn">บันทึกภาพบัตรสมาชิก</button>
         </div>
+        <p class="muted center" id="ecMaskedContact" style="margin-top:10px;font-size:.85rem"></p>
 
         <!-- ขอเปลี่ยนประเภทเป็นสมาชิกสามัญ (แสดงเฉพาะสมาชิกวิสามัญที่ใช้งานอยู่) -->
         <div id="upgradeWrap" class="hidden" style="margin-top:24px">
@@ -162,6 +183,8 @@
           <div class="rc-body">
             <div class="rc-item"><div class="rc-label">ชื่อ-นามสกุล</div><div class="rc-value" id="rcName">—</div></div>
             <div class="rc-item"><div class="rc-label">ประเภทสมาชิก</div><div class="rc-value" id="rcType">—</div></div>
+            <div class="rc-item"><div class="rc-label">เบอร์โทรศัพท์</div><div class="rc-value" id="rcPhone">—</div></div>
+            <div class="rc-item"><div class="rc-label">อีเมล</div><div class="rc-value" id="rcEmail">—</div></div>
             <div class="rc-item"><div class="rc-label">วันที่สมัคร</div><div class="rc-value" id="rcApply">—</div></div>
             <div class="rc-item"><div class="rc-label">วันที่อนุมัติ</div><div class="rc-value" id="rcApprove">—</div></div>
             <div class="rc-item"><div class="rc-label">วันหมดอายุสมาชิกภาพ</div><div class="rc-value" id="rcExpire">—</div></div>
@@ -185,7 +208,13 @@
           <p id="infoRequestMessageText" style="margin:8px 0 0;white-space:pre-wrap"></p>
         </div>
 
-        <div class="panel" style="margin-top:14px">
+        <div class="panel hidden" id="editLockedPanel" style="margin-top:14px">
+          <h3 style="margin-bottom:4px">แก้ไขข้อมูลสมาชิก</h3>
+          <p class="muted" style="margin-bottom:16px">เพื่อความปลอดภัยของข้อมูลส่วนตัว กรุณายืนยันตัวตนด้วยรหัส OTP ทางอีเมลก่อนแก้ไขข้อมูล</p>
+          <button type="button" class="btn btn-primary" id="unlockEditBtn">ยืนยันตัวตนเพื่อแก้ไขข้อมูล</button>
+        </div>
+
+        <div class="panel hidden" id="editFormPanel" style="margin-top:14px">
           <h3 style="margin-bottom:4px">แก้ไขข้อมูลสมาชิก</h3>
           <p class="muted" style="margin-bottom:16px">ตรวจสอบและแก้ไขข้อมูลของท่านได้ตลอดเวลา ข้อมูลด้านล่างคือข้อมูลปัจจุบันของท่าน แก้ไขเฉพาะช่องที่ต้องการเปลี่ยนแปลงแล้วกดบันทึก ช่องที่เว้นว่างไว้จะไม่ถูกเปลี่ยนแปลง</p>
           <form id="additionalInfoForm" novalidate>

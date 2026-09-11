@@ -1,4 +1,7 @@
-let lastResult = null;
+let lastResult = null;       // ผลลัพธ์แบบปิดบังข้อมูล (จากการค้นหาปกติ ไม่ต้องยืนยันตัวตน)
+let verifiedToken = null;    // token หลังยืนยัน OTP สำเร็จ (สำหรับการกระทำที่ต้องยืนยันตัวตน)
+let verifiedFullResult = null; // ข้อมูลแบบเต็ม (ไม่ปิดบัง) ที่ได้หลังยืนยัน OTP สำเร็จ
+let pendingGateAction = null; // งานที่รอทำต่อหลังยืนยัน OTP สำเร็จ
 let AI_ADDRESS_DATA = [];
 
 function fileToBase64(file) {
@@ -21,6 +24,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const renewBtn = document.getElementById("renewBtn");
   const renewAlert = document.getElementById("renewAlert");
   const saveCardBtn = document.getElementById("saveCardBtn");
+  const ecMaskedContact = document.getElementById("ecMaskedContact");
+
+  const otpWrap = document.getElementById("otpWrap");
+  const otpGateTitle = document.getElementById("otpGateTitle");
+  const otpForm = document.getElementById("otpForm");
+  const otpCode = document.getElementById("otpCode");
+  const otpAlert = document.getElementById("otpAlert");
+  const otpVerifyBtn = document.getElementById("otpVerifyBtn");
+  const otpResendBtn = document.getElementById("otpResendBtn");
+  const otpCancelBtn = document.getElementById("otpCancelBtn");
+  const otpSentMessage = document.getElementById("otpSentMessage");
 
   const upgradeWrap = document.getElementById("upgradeWrap");
   const upgradeForm = document.getElementById("upgradeForm");
@@ -29,6 +43,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const infoRequestBanner = document.getElementById("infoRequestBanner");
   const infoRequestMessageText = document.getElementById("infoRequestMessageText");
+  const editLockedPanel = document.getElementById("editLockedPanel");
+  const editFormPanel = document.getElementById("editFormPanel");
+  const unlockEditBtn = document.getElementById("unlockEditBtn");
   const additionalInfoForm = document.getElementById("additionalInfoForm");
   const additionalInfoAlert = document.getElementById("additionalInfoAlert");
   const additionalInfoBtn = document.getElementById("additionalInfoBtn");
@@ -49,6 +66,11 @@ document.addEventListener("DOMContentLoaded", () => {
     resultWrap.classList.add("hidden");
     hideAlert(renewAlert);
     hideAlert(additionalInfoAlert);
+
+    verifiedToken = null;
+    verifiedFullResult = null;
+    pendingGateAction = null;
+    otpWrap.classList.add("hidden");
 
     setLoading(checkBtn, true);
     try {
@@ -89,6 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("ecType").textContent = r.memberType;
       document.getElementById("ecMemberID").textContent = r.memberID || "—";
       document.getElementById("ecExpire").textContent = r.expireDate || "—";
+      ecMaskedContact.textContent = "เบอร์โทรศัพท์: " + (r.phone || "—") + " · อีเมล: " + (r.email || "—");
 
       const isWisamanya = r.memberType === "สมาชิกวิสามัญ";
       upgradeWrap.classList.toggle("hidden", !isWisamanya);
@@ -104,6 +127,8 @@ document.addEventListener("DOMContentLoaded", () => {
       statusEl.className = "badge " + statusBadgeClass(r.status);
       document.getElementById("rcName").textContent = r.fullName;
       document.getElementById("rcType").textContent = r.memberType;
+      document.getElementById("rcPhone").textContent = r.phone || "—";
+      document.getElementById("rcEmail").textContent = r.email || "—";
       document.getElementById("rcApply").textContent = r.applyDate || "—";
       document.getElementById("rcApprove").textContent = r.approveDate || "—";
       document.getElementById("rcExpire").textContent = r.expireDate || "—";
@@ -111,84 +136,92 @@ document.addEventListener("DOMContentLoaded", () => {
       renewWrap.classList.toggle("hidden", !isExpired);
     }
 
-    // ---- ส่วนแก้ไขข้อมูลสมาชิก: แสดงเสมอไม่ว่าสถานะใด ----
     infoRequestBanner.classList.toggle("hidden", !needsInfo);
     if (needsInfo) {
       infoRequestMessageText.textContent = r.infoRequestMessage || "";
     }
-
-    // เอกสารแนบ: บังคับเฉพาะตอนเจ้าหน้าที่ขอเอกสารเพิ่มเติม
-    aiDoc.required = needsInfo;
-    aiDocLabel.innerHTML = needsInfo
-      ? 'แนบเอกสารเพิ่มเติมตามที่เจ้าหน้าที่ร้องขอ<span class="req">*</span>'
-      : "แนบเอกสารเพิ่มเติม (ถ้ามี)";
-
-    // แสดงข้อมูลผู้ทำหน้าที่ ป.วิ.อาญา เฉพาะสมาชิกสามัญ
-    aiCpcFieldset.classList.toggle("hidden", r.memberType !== "สมาชิกสามัญ");
-
-    await prefillEditForm(r);
+    editLockedPanel.classList.remove("hidden");
+    editFormPanel.classList.add("hidden");
   }
 
-  async function prefillEditForm(r) {
-    additionalInfoForm.reset();
-    hideAlert(additionalInfoAlert);
-    additionalInfoBtn.disabled = false;
-
-    // คำนำหน้า
-    const titleSelect = document.getElementById("aiTitle");
-    const knownTitles = ["นาย", "นาง", "นางสาว"];
-    if (r.title && knownTitles.indexOf(r.title) !== -1) {
-      titleSelect.value = r.title;
-    } else if (r.title) {
-      titleSelect.value = "อื่น ๆ";
-      document.getElementById("aiTitleOther").value = r.title;
+  function ensureVerified(title, callback) {
+    if (verifiedToken) {
+      callback();
+      return;
     }
-    syncTitleOther();
+    pendingGateAction = callback;
+    otpGateTitle.textContent = title;
+    otpSentMessage.textContent = "กำลังส่งรหัสยืนยันไปยังอีเมลที่ลงทะเบียนไว้...";
+    otpCode.value = "";
+    hideAlert(otpAlert);
+    otpWrap.classList.remove("hidden");
+    otpWrap.scrollIntoView({ behavior: "smooth", block: "start" });
+    requestOtpForGate();
+  }
 
-    document.getElementById("aiFirstName").value = r.firstName || "";
-    document.getElementById("aiLastName").value = r.lastName || "";
-    document.getElementById("aiBirthDate").value = r.birthDate || "";
-    document.getElementById("aiPhone").value = r.phone || "";
-    document.getElementById("aiEmail").value = r.email || "";
-    document.getElementById("aiAddress").value = r.address || "";
-    document.getElementById("aiProfession").value = r.profession || "";
-    document.getElementById("aiLicenseNo").value = r.licenseNo || "";
-    document.getElementById("aiOrganization").value = r.organization || "";
-    document.getElementById("aiEducation").value = r.education || "";
-    document.getElementById("aiCpcRegNo").value = r.cpcRegNo || "";
-    document.getElementById("aiCpcExperienceYears").value = r.cpcExperienceYears || "";
-
-    await loadAddressData();
-    resetSelect(aiDistrict, "— เลือกจังหวัดก่อน —");
-    resetSelect(aiSubdistrict, "— เลือกอำเภอก่อน —");
-    aiDistrict.disabled = true;
-    aiSubdistrict.disabled = true;
-    aiZipcode.value = "";
-    aiProvince.value = "";
-
-    if (r.province) {
-      const province = AI_ADDRESS_DATA.find((p) => p.n === r.province);
-      if (province) {
-        aiProvince.value = String(province.id);
-        populateDistrictOptions(province);
-        if (r.district) {
-          const district = province.d.find((d) => d.n === r.district);
-          if (district) {
-            aiDistrict.value = String(district.id);
-            populateSubdistrictOptions(district);
-            if (r.subdistrict) {
-              const sub = district.t.find((t) => t.n === r.subdistrict);
-              if (sub) {
-                aiSubdistrict.value = String(sub.id);
-                aiZipcode.value = sub.z || r.zipcode || "";
-              }
-            }
-          }
-        }
+  async function requestOtpForGate() {
+    if (!lastResult) return;
+    try {
+      const res = await callApi("requestOtp", {
+        nationalID: lastResult.nationalID,
+        phone: lastResult.phone,
+      });
+      if (res.ok) {
+        otpSentMessage.textContent = res.message || "ส่งรหัสยืนยันแล้ว กรุณาตรวจสอบอีเมล";
+      } else {
+        showAlert(otpAlert, "error", res.error || "ขอรหัสยืนยันไม่สำเร็จ");
       }
+    } catch (err) {
+      showAlert(otpAlert, "error", "เชื่อมต่อระบบไม่สำเร็จ: " + err.message);
     }
-    if (!aiZipcode.value) aiZipcode.value = r.zipcode || "";
   }
+
+  otpForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!otpForm.checkValidity()) {
+      otpForm.reportValidity();
+      return;
+    }
+    hideAlert(otpAlert);
+    setLoading(otpVerifyBtn, true);
+    try {
+      const res = await callApi("verifyOtp", {
+        nationalID: lastResult.nationalID,
+        phone: lastResult.phone,
+        otp: otpCode.value.trim(),
+      });
+      if (res.ok) {
+        verifiedToken = res.token;
+        verifiedFullResult = { ...res.result, nationalID: lastResult.nationalID, phone: lastResult.phone, token: res.token };
+        otpWrap.classList.add("hidden");
+        const cb = pendingGateAction;
+        pendingGateAction = null;
+        if (cb) await cb();
+      } else {
+        showAlert(otpAlert, "error", res.error || "ยืนยันรหัสไม่สำเร็จ");
+      }
+    } catch (err) {
+      showAlert(otpAlert, "error", "เชื่อมต่อระบบไม่สำเร็จ: " + err.message);
+    } finally {
+      setLoading(otpVerifyBtn, false, "ยืนยันรหัส");
+    }
+  });
+
+  otpResendBtn.addEventListener("click", async () => {
+    hideAlert(otpAlert);
+    setLoading(otpResendBtn, true);
+    try {
+      await requestOtpForGate();
+    } finally {
+      setLoading(otpResendBtn, false, "ขอรหัสใหม่");
+    }
+  });
+
+  otpCancelBtn.addEventListener("click", () => {
+    otpWrap.classList.add("hidden");
+    pendingGateAction = null;
+    hideAlert(otpAlert);
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -201,32 +234,43 @@ document.addEventListener("DOMContentLoaded", () => {
     await runCheck(nationalID, phone);
   });
 
-  renewBtn.addEventListener("click", async () => {
-    if (!lastResult) return;
-    hideAlert(renewAlert);
-    setLoading(renewBtn, true);
-    try {
-      const res = await callApi("renewMembership", {
-        nationalID: lastResult.nationalID,
-        phone: lastResult.phone,
-      });
-      if (res.ok) {
-        showAlert(renewAlert, "success", res.message || "ส่งคำขอต่ออายุเรียบร้อยแล้ว");
-        renewWrap.querySelector(".alert-info")?.classList.add("hidden");
-        renewBtn.classList.add("hidden");
-        document.getElementById("rcStatus").textContent = "รอตรวจสอบ";
-        document.getElementById("rcStatus").className = "badge " + statusBadgeClass("รอตรวจสอบ");
-      } else {
-        showAlert(renewAlert, "error", res.error || "ส่งคำขอต่ออายุไม่สำเร็จ");
-      }
-    } catch (err) {
-      showAlert(renewAlert, "error", "เชื่อมต่อระบบไม่สำเร็จ: " + err.message);
-    } finally {
-      setLoading(renewBtn, false, "ต่ออายุสมาชิกภาพ");
-    }
+  unlockEditBtn.addEventListener("click", () => {
+    ensureVerified("ยืนยันตัวตนเพื่อแก้ไขข้อมูล", async () => {
+      editLockedPanel.classList.add("hidden");
+      editFormPanel.classList.remove("hidden");
+      await prefillEditForm(verifiedFullResult);
+      editFormPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   });
 
-  // ---- คำนำหน้า "อื่น ๆ" ในฟอร์มแก้ไขข้อมูล ----
+  renewBtn.addEventListener("click", () => {
+    ensureVerified("ยืนยันตัวตนเพื่อต่ออายุสมาชิกภาพ", async () => {
+      hideAlert(renewAlert);
+      setLoading(renewBtn, true);
+      try {
+        const res = await callApi("renewMembership", {
+          nationalID: lastResult.nationalID,
+          phone: lastResult.phone,
+          token: verifiedToken,
+        });
+        if (res.ok) {
+          showAlert(renewAlert, "success", res.message || "ส่งคำขอต่ออายุเรียบร้อยแล้ว");
+          const infoAlert = renewWrap.querySelector(".alert-info");
+          if (infoAlert) infoAlert.classList.add("hidden");
+          renewBtn.classList.add("hidden");
+          document.getElementById("rcStatus").textContent = "รอตรวจสอบ";
+          document.getElementById("rcStatus").className = "badge " + statusBadgeClass("รอตรวจสอบ");
+        } else {
+          showAlert(renewAlert, "error", res.error || "ส่งคำขอต่ออายุไม่สำเร็จ");
+        }
+      } catch (err) {
+        showAlert(renewAlert, "error", "เชื่อมต่อระบบไม่สำเร็จ: " + err.message);
+      } finally {
+        setLoading(renewBtn, false, "ต่ออายุสมาชิกภาพ");
+      }
+    });
+  });
+
   const aiTitleSelect = document.getElementById("aiTitle");
   const aiTitleOtherField = document.getElementById("aiTitleOtherField");
   const aiTitleOtherInput = document.getElementById("aiTitleOther");
@@ -237,7 +281,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   aiTitleSelect.addEventListener("change", syncTitleOther);
 
-  // ---- ขอเปลี่ยนประเภทเป็นสมาชิกสามัญ ----
   upgradeForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     hideAlert(upgradeAlert);
@@ -277,28 +320,30 @@ document.addEventListener("DOMContentLoaded", () => {
       cpcCardPhotoName: cpcCardPhotoName,
     };
 
-    setLoading(upgradeBtn, true);
-    try {
-      const res = await callApi("requestUpgrade", {
-        nationalID: lastResult.nationalID,
-        phone: lastResult.phone,
-        data,
-      });
-      if (res.ok) {
-        showAlert(upgradeAlert, "success", res.message || "ส่งคำขอเรียบร้อยแล้ว");
-        upgradeForm.reset();
-        upgradeBtn.disabled = true;
-      } else {
-        showAlert(upgradeAlert, "error", res.error || "ส่งคำขอไม่สำเร็จ");
+    ensureVerified("ยืนยันตัวตนเพื่อขอเปลี่ยนประเภทสมาชิก", async () => {
+      setLoading(upgradeBtn, true);
+      try {
+        const res = await callApi("requestUpgrade", {
+          nationalID: lastResult.nationalID,
+          phone: lastResult.phone,
+          token: verifiedToken,
+          data,
+        });
+        if (res.ok) {
+          showAlert(upgradeAlert, "success", res.message || "ส่งคำขอเรียบร้อยแล้ว");
+          upgradeForm.reset();
+          upgradeBtn.disabled = true;
+        } else {
+          showAlert(upgradeAlert, "error", res.error || "ส่งคำขอไม่สำเร็จ");
+        }
+      } catch (err) {
+        showAlert(upgradeAlert, "error", "เชื่อมต่อระบบไม่สำเร็จ: " + err.message);
+      } finally {
+        setLoading(upgradeBtn, false, "ส่งคำขอเปลี่ยนประเภทสมาชิก");
       }
-    } catch (err) {
-      showAlert(upgradeAlert, "error", "เชื่อมต่อระบบไม่สำเร็จ: " + err.message);
-    } finally {
-      setLoading(upgradeBtn, false, "ส่งคำขอเปลี่ยนประเภทสมาชิก");
-    }
+    });
   });
 
-  // ---- ที่อยู่แบบ cascade สำหรับฟอร์มแก้ไขข้อมูล (รองรับการเติมค่าปัจจุบันอัตโนมัติ) ----
   const aiProvince = document.getElementById("aiProvince");
   const aiDistrict = document.getElementById("aiDistrict");
   const aiSubdistrict = document.getElementById("aiSubdistrict");
@@ -367,7 +412,74 @@ document.addEventListener("DOMContentLoaded", () => {
     aiZipcode.value = selected && selected.dataset.zip ? selected.dataset.zip : "";
   });
 
-  // ---- บันทึกการแก้ไขข้อมูล / ส่งเอกสารเพิ่มเติม ----
+  async function prefillEditForm(r) {
+    additionalInfoForm.reset();
+    hideAlert(additionalInfoAlert);
+    additionalInfoBtn.disabled = false;
+
+    aiCpcFieldset.classList.toggle("hidden", r.memberType !== "สมาชิกสามัญ");
+
+    const needsInfo = r.status === "รอข้อมูลเพิ่มเติม";
+    aiDoc.required = needsInfo;
+    aiDocLabel.innerHTML = needsInfo
+      ? 'แนบเอกสารเพิ่มเติมตามที่เจ้าหน้าที่ร้องขอ<span class="req">*</span>'
+      : "แนบเอกสารเพิ่มเติม (ถ้ามี)";
+
+    const titleSelect = document.getElementById("aiTitle");
+    const knownTitles = ["นาย", "นาง", "นางสาว"];
+    if (r.title && knownTitles.indexOf(r.title) !== -1) {
+      titleSelect.value = r.title;
+    } else if (r.title) {
+      titleSelect.value = "อื่น ๆ";
+      document.getElementById("aiTitleOther").value = r.title;
+    }
+    syncTitleOther();
+
+    document.getElementById("aiFirstName").value = r.firstName || "";
+    document.getElementById("aiLastName").value = r.lastName || "";
+    document.getElementById("aiBirthDate").value = r.birthDate || "";
+    document.getElementById("aiPhone").value = r.phone || "";
+    document.getElementById("aiEmail").value = r.email || "";
+    document.getElementById("aiAddress").value = r.address || "";
+    document.getElementById("aiProfession").value = r.profession || "";
+    document.getElementById("aiLicenseNo").value = r.licenseNo || "";
+    document.getElementById("aiOrganization").value = r.organization || "";
+    document.getElementById("aiEducation").value = r.education || "";
+    document.getElementById("aiCpcRegNo").value = r.cpcRegNo || "";
+    document.getElementById("aiCpcExperienceYears").value = r.cpcExperienceYears || "";
+
+    await loadAddressData();
+    resetSelect(aiDistrict, "— เลือกจังหวัดก่อน —");
+    resetSelect(aiSubdistrict, "— เลือกอำเภอก่อน —");
+    aiDistrict.disabled = true;
+    aiSubdistrict.disabled = true;
+    aiZipcode.value = "";
+    aiProvince.value = "";
+
+    if (r.province) {
+      const province = AI_ADDRESS_DATA.find((p) => p.n === r.province);
+      if (province) {
+        aiProvince.value = String(province.id);
+        populateDistrictOptions(province);
+        if (r.district) {
+          const district = province.d.find((d) => d.n === r.district);
+          if (district) {
+            aiDistrict.value = String(district.id);
+            populateSubdistrictOptions(district);
+            if (r.subdistrict) {
+              const sub = district.t.find((t) => t.n === r.subdistrict);
+              if (sub) {
+                aiSubdistrict.value = String(sub.id);
+                aiZipcode.value = sub.z || r.zipcode || "";
+              }
+            }
+          }
+        }
+      }
+    }
+    if (!aiZipcode.value) aiZipcode.value = r.zipcode || "";
+  }
+
   additionalInfoForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     hideAlert(additionalInfoAlert);
@@ -376,7 +488,10 @@ document.addEventListener("DOMContentLoaded", () => {
       additionalInfoForm.reportValidity();
       return;
     }
-    if (!lastResult) return;
+    if (!lastResult || !verifiedToken) {
+      showAlert(additionalInfoAlert, "error", "เซสชันหมดอายุ กรุณากดปลดล็อกฟอร์มแก้ไขข้อมูลใหม่อีกครั้ง");
+      return;
+    }
 
     const file = aiDoc.files[0];
     let additionalDocBase64 = "";
@@ -431,6 +546,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await callApi("submitAdditionalInfo", {
         nationalID: lastResult.nationalID,
         phone: lastResult.phone,
+        token: verifiedToken,
         data,
       });
       if (res.ok) {
@@ -452,7 +568,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // รองรับลิงก์ตรงจากอีเมล (?nid=...&ph=...) — กรอกให้และค้นหาอัตโนมัติ
   const params = new URLSearchParams(window.location.search);
   const nidParam = params.get("nid");
   const phParam = params.get("ph");
@@ -462,7 +577,6 @@ document.addEventListener("DOMContentLoaded", () => {
     runCheck(nidParam, phParam);
   }
 
-  // ---- บันทึกภาพบัตรสมาชิกเป็นไฟล์รูป ----
   if (saveCardBtn) {
     saveCardBtn.addEventListener("click", async () => {
       const cardEl = document.querySelector(".member-ecard");
